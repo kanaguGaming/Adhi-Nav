@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="AdhiNav — Smart indoor navigation for ACET college. Scan QR codes and get step-by-step walking directions.">
+  <meta name="theme-color" content="#050816">
+  <title>AdhiNav — College Navigator</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ════════════════════════════════════════════════════════
+       SCREEN 1: LANDING PAGE
+       ════════════════════════════════════════════════════════ -->
+  <section id="screen-landing" class="screen active">
+
+    <!-- Branding -->
+    <div class="brand">
+      <div class="brand-logo">🧭</div>
+      <h1>AdhiNav</h1>
+      <p>Smart Campus Navigator — ACET</p>
+    </div>
+
+    <!-- Scan CTA -->
+    <div class="glass-card text-center">
+      <h2><span class="icon">📱</span> Get Started</h2>
+      <p class="text-muted mb-16" style="font-size: 0.85rem;">Scan a QR code placed around campus to start navigating</p>
+      <button id="btn-start-scan" class="btn btn-primary btn-full" onclick="showScreen('screen-scanner')">
+        📷 Scan QR Code
+      </button>
+      <div class="manual-entry">
+        <button class="link-btn" onclick="showScreen('screen-manual-location')">
+          Or select your location manually →
+        </button>
+      </div>
+    </div>
+
+    <!-- Room Naming Guide -->
+    <div class="glass-card">
+      <h2><span class="icon">📖</span> Room Naming Guide</h2>
+      <div class="code-explain">
+        <div class="code-item">
+          <span class="code-badge mb">MB</span>
+          <span class="code-desc"><strong>Main Block</strong> — The central building</span>
+        </div>
+        <div class="code-item">
+          <span class="code-badge ab">AB</span>
+          <span class="code-desc"><strong>Admin Block</strong> — South of campus</span>
+        </div>
+        <div class="code-item">
+          <span class="code-badge cn">CN</span>
+          <span class="code-desc"><strong>Canteen</strong> — East side of campus</span>
+        </div>
+        <div class="code-item">
+          <span class="code-badge xyz">xyz</span>
+          <span class="code-desc"><strong>x</strong> = Floor number, <strong>yz</strong> = Room number<br>e.g. <strong>MB102</strong> = Main Block, 1st Floor, Room 02</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="text-center mt-16">
+      <button class="settings-btn" onclick="openSettings()" title="Settings">
+        ⚙️ Settings
+      </button>
+    </div>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════
+       SCREEN 2: QR SCANNER
+       ════════════════════════════════════════════════════════ -->
+  <section id="screen-scanner" class="screen">
+
+    <div class="top-bar">
+      <button class="back-btn" onclick="showScreen('screen-landing')">← Back</button>
+    </div>
+
+    <div class="glass-card">
+      <h2><span class="icon">📷</span> Scan QR Code</h2>
+      <p class="text-muted mb-16" style="font-size: 0.85rem;">Point your camera at any AdhiNav QR code placed around campus</p>
+      <div class="scanner-container">
+        <div id="reader"></div>
+      </div>
+      <div id="scan-result" class="hidden">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+
+    <div id="scan-confirm" class="hidden">
+      <div class="glass-card location-detected">
+        <div class="check-icon">📍</div>
+        <div class="location-name" id="detected-location-name">—</div>
+        <div class="location-block" id="detected-location-block">—</div>
+      </div>
+      <button id="btn-confirm-location" class="btn btn-success btn-full" onclick="confirmScannedLocation()">
+        ✅ Confirm — Choose Destination
+      </button>
+    </div>
+
+    <div class="manual-entry mt-16">
+      <button class="link-btn" onclick="showScreen('screen-manual-location')">
+        Can't scan? Select location manually →
+      </button>
+    </div>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════
+       SCREEN 2B: MANUAL LOCATION SELECT
+       ════════════════════════════════════════════════════════ -->
+  <section id="screen-manual-location" class="screen">
+
+    <div class="top-bar">
+      <button class="back-btn" onclick="showScreen('screen-landing')">← Back</button>
+    </div>
+
+    <div class="glass-card">
+      <h2><span class="icon">📍</span> Where are you now?</h2>
+      <p class="text-muted mb-12" style="font-size: 0.85rem;">Select your current location</p>
+
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="manual-search" placeholder="Search location..." oninput="filterManualLocations(this.value)">
+      </div>
+
+      <div class="destination-list" id="manual-location-list">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+
+    <button id="btn-manual-confirm" class="btn btn-primary btn-full hidden" onclick="confirmManualLocation()">
+      ✅ Confirm Location
+    </button>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════
+       SCREEN 3: DESTINATION SELECTOR
+       ════════════════════════════════════════════════════════ -->
+  <section id="screen-destination" class="screen">
+
+    <div class="top-bar">
+      <button class="back-btn" onclick="goBackFromDestination()">← Back</button>
+    </div>
+
+    <!-- Current location display -->
+    <div class="glass-card" style="padding: 16px 20px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 1.2rem;">📍</span>
+        <div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Your Location</div>
+          <div id="current-location-display" style="font-weight: 600; font-size: 0.95rem;">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <h2><span class="icon">🎯</span> Where do you want to go?</h2>
+
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="dest-search" placeholder="Search rooms, halls, canteen..." oninput="filterDestinations(this.value)">
+      </div>
+
+      <div class="destination-list" id="destination-list">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+
+    <button id="btn-navigate" class="btn btn-primary btn-full hidden" onclick="startNavigation()">
+      🧭 Navigate
+    </button>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════
+       SCREEN 4: NAVIGATION
+       ════════════════════════════════════════════════════════ -->
+  <section id="screen-navigation" class="screen">
+
+    <div class="top-bar">
+      <button class="back-btn" onclick="exitNavigation()">← Exit</button>
+    </div>
+
+    <!-- Route display -->
+    <div class="nav-route">
+      <span class="route-point" id="nav-from">—</span>
+      <span class="route-arrow">→</span>
+      <span class="route-point" id="nav-to">—</span>
+    </div>
+
+    <!-- Progress -->
+    <div class="step-counter" id="step-counter">Step 1 of 5</div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width: 20%"></div>
+    </div>
+
+    <!-- Instruction card -->
+    <div class="instruction-card" id="instruction-card">
+      <div class="instruction-icon" id="instruction-icon">🚶</div>
+      <div class="instruction-text" id="instruction-text">
+        Loading navigation...
+      </div>
+      <div class="instruction-location" id="instruction-location">—</div>
+    </div>
+
+    <!-- Navigation buttons -->
+    <div class="nav-actions">
+      <button id="btn-prev" class="btn btn-secondary" onclick="navPrevious()" disabled>
+        ◀ Previous
+      </button>
+      <button id="btn-next" class="btn btn-primary" onclick="navNext()">
+        Next ▶
+      </button>
+    </div>
+    <div class="nav-actions-row">
+      <button id="btn-reached" class="btn btn-success btn-full" onclick="navReached()">
+        ✅ I Reached
+      </button>
+      <button id="btn-lost" class="btn btn-warning btn-full" onclick="navLost()">
+        🆘 I'm Lost
+      </button>
+    </div>
+
+    <!-- AI Assistant -->
+    <div class="ai-section mt-24">
+      <button class="ai-toggle" id="ai-toggle" onclick="toggleAIChat()">
+        🤖 Ask AI Assistant for Help
+      </button>
+      <div class="ai-chat-panel" id="ai-chat-panel">
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-bubble ai">
+            <div class="ai-label">AI Assistant</div>
+            Hi! I'm here to help you navigate. Ask me anything about directions, rooms, or the campus! 😊
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" class="chat-input" id="chat-input" placeholder="Ask about directions..." onkeypress="if(event.key==='Enter')sendChat()">
+          <button class="chat-send" onclick="sendChat()">➤</button>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════
+       SCREEN 5: SUCCESS
+       ════════════════════════════════════════════════════════ -->
+  <section id="screen-success" class="screen">
+
+    <div class="success-animation">
+      <div class="success-icon">🎉</div>
+      <h2>You've Arrived!</h2>
+      <p id="success-destination">—</p>
+    </div>
+
+    <div class="glass-card text-center">
+      <button class="btn btn-primary btn-full mb-12" onclick="navigateAgain()">
+        🧭 Navigate Somewhere Else
+      </button>
+      <button class="btn btn-secondary btn-full" onclick="showScreen('screen-landing')">
+        🏠 Back to Home
+      </button>
+    </div>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════
+       SCREEN 6: LOST
+       ════════════════════════════════════════════════════════ -->
+  <section id="screen-lost" class="screen">
+
+    <div class="top-bar">
+      <button class="back-btn" onclick="returnToNavigation()">← Back to Navigation</button>
+    </div>
+
+    <div class="glass-card">
+      <div class="lost-panel">
+        <div class="icon">😟</div>
+        <h3>Don't worry, we'll help!</h3>
+        <p>Look around for the nearest QR code and scan it. Here are some nearby scan points:</p>
+
+        <div class="scan-points-list" id="scan-points-list">
+          <!-- Populated dynamically -->
+        </div>
+
+        <button class="btn btn-primary btn-full mb-12" onclick="rescanQR()">
+          📷 Scan QR Code Again
+        </button>
+        <button class="btn btn-secondary btn-full" onclick="returnToNavigation()">
+          ← Continue Current Navigation
+        </button>
+      </div>
+    </div>
+
+  </section>
+
+</div><!-- /app -->
+
+
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-text">Saved!</span>
+</div>
+
+
+<!-- Scripts -->
+<script src="locations.js"></script>
+<script src="navGraph.js"></script>
+<script src="pathfinder.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>

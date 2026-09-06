@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AdhiNav — QR Code Generator</title>
+  <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #050816;
+      color: #f1f5f9;
+      padding: 32px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #94a3b8;
+      margin-bottom: 32px;
+      font-size: 0.9rem;
+    }
+
+    .controls {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .controls button {
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 0 8px;
+      transition: all 0.25s;
+    }
+
+    .controls button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .controls button.secondary {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+    }
+
+    .controls button.secondary:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(99, 102, 241, 0.3);
+      box-shadow: none;
+    }
+
+    .qr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .qr-card {
+      background: rgba(15, 20, 50, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.25s;
+    }
+
+    .qr-card:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .qr-card canvas {
+      background: white;
+      border-radius: 8px;
+      padding: 8px;
+      margin-bottom: 12px;
+    }
+
+    .qr-label {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #f1f5f9;
+      margin-bottom: 4px;
+    }
+
+    .qr-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #818cf8;
+      background: rgba(99, 102, 241, 0.08);
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    .qr-type {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: white;
+        color: black;
+        padding: 16px;
+      }
+
+      .controls { display: none; }
+
+      h1 {
+        -webkit-text-fill-color: #333;
+        color: #333;
+        font-size: 1.4rem;
+      }
+
+      .subtitle { color: #666; }
+
+      .qr-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+
+      .qr-card {
+        background: white;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        padding: 16px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .qr-label { color: black; }
+      .qr-id { color: #333; background: #eee; }
+      .qr-type { color: #666; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧭 AdhiNav — QR Codes</h1>
+  <p class="subtitle">Print these QR codes and paste them at the corresponding locations around campus</p>
+
+  <div class="controls">
+    <button onclick="window.print()">🖨️ Print QR Codes</button>
+    <button class="secondary" onclick="downloadAll()">📥 Download All</button>
+  </div>
+
+  <div class="qr-grid" id="qr-grid">
+    <!-- Generated dynamically -->
+  </div>
+
+  <script>
+    // Scannable locations with their QR data
+    const SCAN_POINTS = [
+      { id: 'MB_ENTRANCE', name: 'Main Block Entrance', type: 'Entrance' },
+      { id: 'MB_EAST_PORTICO', name: 'MB East Portico', type: 'Portico' },
+      { id: 'MB_WEST_PORTICO', name: 'MB West Portico', type: 'Portico' },
+      { id: 'MB_GF_STAIRS', name: 'MB Ground Floor Stairs', type: 'Stairs' },
+      { id: 'MB_F1_STAIRS', name: 'MB First Floor Stairs', type: 'Stairs' },
+      { id: 'MB_F2_STAIRS', name: 'MB Second Floor Stairs', type: 'Stairs' },
+      { id: 'MB_F3_STAIRS', name: 'MB Third Floor Stairs', type: 'Stairs' },
+      { id: 'MB102', name: 'MB102 — Seminar Hall', type: 'Room' },
+      { id: 'AB_ENTRANCE', name: 'Admin Block Entrance', type: 'Entrance' },
+      { id: 'ECE_BLOCK', name: 'ECE Block', type: 'Landmark' },
+      { id: 'CANTEEN', name: 'Canteen', type: 'Landmark' },
+    ];
+
+    const grid = document.getElementById('qr-grid');
+
+    SCAN_POINTS.forEach(point => {
+      const qrData = `ADHINAV:${point.id}`;
+
+      const card = document.createElement('div');
+      card.className = 'qr-card';
+      card.innerHTML = `
+        <canvas id="qr-${point.id}"></canvas>
+        <div class="qr-label">${point.name}</div>
+        <div class="qr-id">${qrData}</div>
+        <div class="qr-type">${point.type}</div>
+      `;
+      grid.appendChild(card);
+
+      // Generate QR code
+      QRCode.toCanvas(document.getElementById(`qr-${point.id}`), qrData, {
+        width: 180,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      }, function(error) {
+        if (error) console.error('QR Error:', error);
+      });
+    });
+
+    function downloadAll() {
+      SCAN_POINTS.forEach(point => {
+        const canvas = document.getElementById(`qr-${point.id}`);
+        if (canvas) {
+          const link = document.createElement('a');
+          link.download = `AdhiNav_QR_${point.id}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
