@@ -16,23 +16,18 @@ const NAV_GRAPH = {
   'MB_ENTRANCE': [
     {
       to: 'MB_GF_CORRIDOR',
-      forward: 'Enter the Main Block through the main entrance. You are now in the ground floor corridor, facing east.',
-      reverse: 'Walk towards the main entrance of the Main Block. Exit through the main door.'
+      forward: 'Enter the Main Block from the West Entrance. You are now in the ground floor corridor, facing east. The main staircase is immediately here.',
+      reverse: 'Walk towards the West Entrance of the Main Block and exit.'
     },
     {
       to: 'MB_WEST_PORTICO',
-      forward: 'Head towards the west side of the Main Block to reach the West Portico.',
-      reverse: 'From the West Portico, walk to the Main Block entrance.'
+      forward: 'You are already at the West Portico (the Main Entrance).',
+      reverse: 'You are already at the Main Entrance.'
     },
     {
-      to: 'CAMPUS_SOUTH_PATH',
-      forward: 'Exit the Main Block and take the path heading south towards the ECE Block.',
-      reverse: 'Walk north along the campus path until you reach the Main Block entrance.'
-    },
-    {
-      to: 'CAMPUS_EAST_PATH',
-      forward: 'Exit the Main Block and take the path heading east towards the Canteen.',
-      reverse: 'Walk west along the campus path until you reach the Main Block entrance.'
+      to: 'CAMPUS_WEST_PATH',
+      forward: 'From the West Entrance, head south along the campus path on the west side of the building.',
+      reverse: 'Walk north along the west path until you reach the Main Block entrance.'
     }
   ],
 
@@ -62,6 +57,11 @@ const NAV_GRAPH = {
   // Ground floor left wing rooms (MB001-MB003)
   'MB_GF_LEFT_WING': [
     {
+      to: 'MB_GF_GIRLS_RESTROOM',
+      forward: 'The Girls Restroom is the very first (left-most) room in this wing.',
+      reverse: 'Exit the Girls Restroom and step into the left wing corridor.'
+    },
+    {
       to: 'MB001',
       forward: 'MB001 is the first room on the left side of this wing.',
       reverse: 'Exit MB001 and step into the left wing corridor.'
@@ -84,6 +84,11 @@ const NAV_GRAPH = {
       to: 'MB004',
       forward: 'MB004 is on the right side of the ground floor.',
       reverse: 'Exit MB004 and step into the right wing corridor.'
+    },
+    {
+      to: 'MB_GF_BOYS_RESTROOM',
+      forward: 'The Boys Restroom is the last (right-most) room in this wing.',
+      reverse: 'Exit the Boys Restroom and step into the right wing corridor.'
     }
   ],
 
@@ -130,6 +135,11 @@ const NAV_GRAPH = {
   // First floor rooms
   'MB_F1_LEFT_WING': [
     {
+      to: 'MB_F1_GIRLS_RESTROOM',
+      forward: 'The Girls Restroom is the very first (left-most) room in this wing.',
+      reverse: 'Exit the Girls Restroom and step into the left wing corridor.'
+    },
+    {
       to: 'MB102',
       forward: 'MB102 (Radhakrishnan Seminar Hall) is on the left side. You\'ll see the large seminar hall entrance.',
       reverse: 'Exit the Seminar Hall and turn to face the stairs.'
@@ -167,6 +177,11 @@ const NAV_GRAPH = {
       to: 'MB106',
       forward: 'MB106 is the third room on the right side, at the end of this wing.',
       reverse: 'Exit MB106 and step into the right wing corridor.'
+    },
+    {
+      to: 'MB_F1_BOYS_RESTROOM',
+      forward: 'The Boys Restroom is the last (right-most) room in this wing.',
+      reverse: 'Exit the Boys Restroom and step into the right wing corridor.'
     }
   ],
 
@@ -189,10 +204,20 @@ const NAV_GRAPH = {
       to: 'MB_F2_STRAIGHT',
       forward: 'At the second floor landing, look STRAIGHT ahead while facing east.',
       reverse: 'Walk back to the second floor stairs landing.'
+    },
+    {
+      to: 'MB_F2_RIGHT_WING',
+      forward: 'At the second floor landing, while facing east, turn RIGHT.',
+      reverse: 'Walk back to the second floor stairs landing.'
     }
   ],
 
   'MB_F2_LEFT_WING': [
+    {
+      to: 'MB_F2_GIRLS_RESTROOM',
+      forward: 'The Girls Restroom is the very first (left-most) room in this wing.',
+      reverse: 'Exit the Girls Restroom and step into the left wing corridor.'
+    },
     {
       to: 'MB202',
       forward: 'MB202 is the first room on the left side of the second floor.',
@@ -210,6 +235,14 @@ const NAV_GRAPH = {
       to: 'MB203X',
       forward: 'MB203x is straight ahead when you face east from the second floor stairs.',
       reverse: 'Walk back towards the staircase from MB203x.'
+    }
+  ],
+
+  'MB_F2_RIGHT_WING': [
+    {
+      to: 'MB_F2_BOYS_RESTROOM',
+      forward: 'The Boys Restroom is the last (right-most) room in this wing.',
+      reverse: 'Exit the Boys Restroom and step into the right wing corridor.'
     }
   ],
 
@@ -231,6 +264,11 @@ const NAV_GRAPH = {
   ],
 
   'MB_F3_LEFT_WING': [
+    {
+      to: 'MB_F3_GIRLS_RESTROOM',
+      forward: 'The Girls Restroom is the very first (left-most) room in this wing.',
+      reverse: 'Exit the Girls Restroom and step into the left wing corridor.'
+    },
     {
       to: 'MB301A',
       forward: 'MB301A is the first room on the left side of the third floor.',
@@ -268,6 +306,11 @@ const NAV_GRAPH = {
       to: 'MB307',
       forward: 'MB307 is the last room on the right side of the third floor.',
       reverse: 'Exit MB307 and step into the right wing corridor.'
+    },
+    {
+      to: 'MB_F3_BOYS_RESTROOM',
+      forward: 'The Boys Restroom is the last (right-most) room in this wing.',
+      reverse: 'Exit the Boys Restroom and step into the right wing corridor.'
     }
   ],
 
@@ -276,25 +319,42 @@ const NAV_GRAPH = {
   // EAST PORTICO (connects corridor to outdoor)
   // ═══════════════════════════════════════════════════════════
 
-  'MB_EAST_PORTICO': [],
+  'MB_EAST_PORTICO': [
+    {
+      to: 'CAMPUS_SOUTH_PATH',
+      forward: 'Exit the East Portico and head south to join the main east-west campus path.',
+      reverse: 'Walk north from the campus path to enter the East Portico.'
+    }
+  ],
 
 
   // ═══════════════════════════════════════════════════════════
   // WEST PORTICO
   // ═══════════════════════════════════════════════════════════
 
-  'MB_WEST_PORTICO': [],
+  'MB_WEST_PORTICO': [
+    {
+      to: 'CAMPUS_WEST_PATH',
+      forward: 'Head south along the campus path on the west side of the building.',
+      reverse: 'Walk north along the west path to reach the West Portico.'
+    }
+  ],
 
 
   // ═══════════════════════════════════════════════════════════
   // CAMPUS PATHS
   // ═══════════════════════════════════════════════════════════
 
-  'CAMPUS_SOUTH_PATH': [
+  'CAMPUS_WEST_PATH': [
     {
       to: 'ECE_BLOCK',
-      forward: 'Continue walking south. The ECE Block is immediately south of the Main Block.',
+      forward: 'Continue walking south along the west path. The ECE Block is ahead.',
       reverse: 'Walk north from the ECE Block towards the Main Block.'
+    },
+    {
+      to: 'CAMPUS_SOUTH_PATH',
+      forward: 'Turn left to head east along the path running south of the Main Block.',
+      reverse: 'Turn right to head north along the west path.'
     }
   ],
 
@@ -306,11 +366,11 @@ const NAV_GRAPH = {
     }
   ],
 
-  'CAMPUS_EAST_PATH': [
+  'CAMPUS_SOUTH_PATH': [
     {
       to: 'CANTEEN',
-      forward: 'Follow the path east. The Canteen is on the east side of the campus.',
-      reverse: 'From the Canteen, follow the path west back towards the Main Block.'
+      forward: 'Follow this path east. The Canteen is on the far east side of the campus.',
+      reverse: 'From the Canteen, follow the path west.'
     }
   ],
 

@@ -108,28 +108,9 @@ function onScanSuccess(decodedText, decodedResult) {
   if (location) {
     // Valid AdhiNav QR code
     currentLocationId = location.id;
-
-    // Show detection result
-    document.getElementById('scan-result').classList.remove('hidden');
-    document.getElementById('scan-result').innerHTML = `
-      <div class="scan-result">
-        <span class="icon">✅</span>
-        <div class="info">
-          <div class="label">Detected</div>
-          <div class="value">${location.name}</div>
-        </div>
-      </div>
-    `;
-
-    // Show confirm section
-    document.getElementById('scan-confirm').classList.remove('hidden');
-    document.getElementById('detected-location-name').textContent = location.name;
-    document.getElementById('detected-location-block').textContent = BLOCKS[location.block] || location.block;
-
-    // Stop scanner
     stopQRScanner();
-
-    showToast('📍 Location detected!', 'success');
+    showToast(`📍 Scanned: ${location.name}`, 'success');
+    showScreen('screen-destination');
   } else {
     // Not an AdhiNav QR code
     document.getElementById('scan-result').classList.remove('hidden');
@@ -147,12 +128,6 @@ function onScanSuccess(decodedText, decodedResult) {
 
 function onScanError(errorMessage) {
   // Ignore continuous scan errors (they fire constantly when no QR is in frame)
-}
-
-function confirmScannedLocation() {
-  if (currentLocationId) {
-    showScreen('screen-destination');
-  }
 }
 
 
@@ -223,21 +198,8 @@ function filterManualLocations(query) {
 }
 
 function selectManualLocation(locId) {
-  selectedManualLocationId = locId;
-  document.getElementById('btn-manual-confirm').classList.remove('hidden');
-
-  // Update selection visuals
-  document.querySelectorAll('#manual-location-list .dest-item').forEach(el => {
-    el.classList.remove('selected');
-  });
-  event.currentTarget.classList.add('selected');
-}
-
-function confirmManualLocation() {
-  if (selectedManualLocationId) {
-    currentLocationId = selectedManualLocationId;
-    showScreen('screen-destination');
-  }
+  currentLocationId = locId;
+  showScreen('screen-destination');
 }
 
 
@@ -312,13 +274,7 @@ function filterDestinations(query) {
 
 function selectDestination(locId, element) {
   selectedDestinationId = locId;
-  document.getElementById('btn-navigate').classList.remove('hidden');
-
-  // Update selection visuals
-  document.querySelectorAll('#destination-list .dest-item').forEach(el => {
-    el.classList.remove('selected');
-  });
-  element.classList.add('selected');
+  startNavigation();
 }
 
 function updateCurrentLocationDisplay() {
@@ -567,16 +523,18 @@ function buildAISystemPrompt(context) {
   return `You are AdhiNav AI, a friendly and helpful campus navigation assistant for ACET (Adhiparasakthi College of Engineering and Technology). You help students and visitors find their way around campus.
 
 CAMPUS LAYOUT:
-- Main Block (MB): Central building. Entrance faces east. Rooms are named MBxyz where x=floor, yz=room number.
-  - Ground Floor: MB001-MB003 (left side facing east), MB004 (right side)
-  - First Floor: MB102/Radhakrishnan Seminar Hall (turn left from stairs), MB103A/B (straight from stairs), MB103C (north side east portico stairs), MB104-MB106 (turn right from stairs)
-  - Second Floor: MB202, MB203 (turn left from stairs), MB203x (straight from stairs)
-  - Third Floor: MB301A, MB301B, MB302 (turn left from stairs), MB304-MB307 (turn right from stairs)
-  - Has East Portico and West Portico
-- ECE Block (EC): Immediately south of Main Block
-- Admin Block (AB): Far south of Main Block (past ECE Block). Entrance faces west.
+- Main Block (MB): Central building. The Main Entrance (West Portico) is on the WEST side. East Portico is on the EAST side. Rooms are named MBxyz where x=floor, yz=room number.
+  - The main staircase is located immediately inside the West Entrance.
+  - The left-most room (North side) of each floor is always the Girls Restroom.
+  - The right-most room (South side) of each floor is always the Boys Restroom.
+  - Ground Floor: MB_GF_GIRLS_RESTROOM, MB001-MB003 (North side), MB004, MB_GF_BOYS_RESTROOM (South side)
+  - First Floor: MB_F1_GIRLS_RESTROOM, MB102/Radhakrishnan Seminar Hall (turn left from stairs), MB103A/B (straight from stairs), MB103C (north side east portico stairs), MB104-MB106, MB_F1_BOYS_RESTROOM (turn right from stairs)
+  - Second Floor: MB_F2_GIRLS_RESTROOM, MB202, MB203 (turn left from stairs), MB203x (straight from stairs), MB_F2_BOYS_RESTROOM (turn right from stairs)
+  - Third Floor: MB_F3_GIRLS_RESTROOM, MB301A, MB301B, MB302 (turn left from stairs), MB304-MB307, MB_F3_BOYS_RESTROOM (turn right from stairs)
+- ECE Block (EC): Located South of the Main Block's West Entrance, along the West path.
+- Admin Block (AB): Located far South of the ECE Block. Entrance faces West.
   - Ground Floor: AB002 (immediate left entering), AB003 (left lane, left of elevator), AB004 (end of left lane), AB005 (turn right from AB004)
-- Canteen: East side of campus, monolithic building with no rooms
+- Canteen: Located far East. Accessible via a path running East-West on the South side of the Main Block.
 
 CURRENT NAVIGATION STATE:
 ${context.from ? `- Navigating FROM: ${context.from}` : '- No active navigation'}
@@ -693,6 +651,15 @@ function getLocationTypeName(type) {
 function getStepIcon(step, current, total) {
   if (current === 1) return '📍';
   if (current === total) return '🏁';
+
+  // Smart directional parsing
+  if (step && step.instruction) {
+    const text = step.instruction.toLowerCase();
+    if (text.includes('stairs') || text.includes(' up ') || text.includes(' down ')) return '🪜';
+    if (text.includes('left')) return '⬅️';
+    if (text.includes('right')) return '➡️';
+    if (text.includes('straight') || text.includes('forward')) return '⬆️';
+  }
 
   const loc = step.location;
   if (!loc) return '🚶';

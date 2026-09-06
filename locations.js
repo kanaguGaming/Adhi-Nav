@@ -234,6 +234,16 @@ const LOCATIONS = [
 
   // Ground Floor Rooms
   {
+    id: 'MB_GF_GIRLS_RESTROOM',
+    name: 'Girls Restroom (Ground Floor)',
+    aliases: ['mb ground girls restroom', 'girls toilet', 'ladies washroom'],
+    block: 'MB',
+    floor: 0,
+    type: LOCATION_TYPES.ROOM,
+    scannable: false,
+    selectable: true
+  },
+  {
     id: 'MB001',
     name: 'MB001',
     aliases: ['mb 001', 'mb ground 1', 'main block 001'],
@@ -274,7 +284,28 @@ const LOCATIONS = [
     selectable: true
   },
 
+  {
+    id: 'MB_GF_BOYS_RESTROOM',
+    name: 'Boys Restroom (Ground Floor)',
+    aliases: ['mb ground boys restroom', 'boys toilet', 'gents washroom'],
+    block: 'MB',
+    floor: 0,
+    type: LOCATION_TYPES.ROOM,
+    scannable: false,
+    selectable: true
+  },
+
   // First Floor Rooms
+  {
+    id: 'MB_F1_GIRLS_RESTROOM',
+    name: 'Girls Restroom (First Floor)',
+    aliases: ['mb first floor girls restroom', 'girls toilet', 'ladies washroom'],
+    block: 'MB',
+    floor: 1,
+    type: LOCATION_TYPES.ROOM,
+    scannable: false,
+    selectable: true
+  },
   {
     id: 'MB102',
     name: 'MB102 — Radhakrishnan Seminar Hall',
@@ -336,7 +367,28 @@ const LOCATIONS = [
     selectable: true
   },
 
+  {
+    id: 'MB_F1_BOYS_RESTROOM',
+    name: 'Boys Restroom (First Floor)',
+    aliases: ['mb first floor boys restroom', 'boys toilet', 'gents washroom'],
+    block: 'MB',
+    floor: 1,
+    type: LOCATION_TYPES.ROOM,
+    scannable: false,
+    selectable: true
+  },
+
   // Second Floor Rooms
+  {
+    id: 'MB_F2_GIRLS_RESTROOM',
+    name: 'Girls Restroom (Second Floor)',
+    aliases: ['mb second floor girls restroom', 'girls toilet', 'ladies washroom'],
+    block: 'MB',
+    floor: 2,
+    type: LOCATION_TYPES.ROOM,
+    scannable: false,
+    selectable: true
+  },
   {
     id: 'MB202',
     name: 'MB202',
@@ -368,7 +420,28 @@ const LOCATIONS = [
     selectable: true
   },
 
+  {
+    id: 'MB_F2_BOYS_RESTROOM',
+    name: 'Boys Restroom (Second Floor)',
+    aliases: ['mb second floor boys restroom', 'boys toilet', 'gents washroom'],
+    block: 'MB',
+    floor: 2,
+    type: LOCATION_TYPES.ROOM,
+    scannable: false,
+    selectable: true
+  },
+
   // Third Floor Rooms
+  {
+    id: 'MB_F3_GIRLS_RESTROOM',
+    name: 'Girls Restroom (Third Floor)',
+    aliases: ['mb third floor girls restroom', 'girls toilet', 'ladies washroom'],
+    block: 'MB',
+    floor: 3,
+    type: LOCATION_TYPES.ROOM,
+    scannable: false,
+    selectable: true
+  },
   {
     id: 'MB301A',
     name: 'MB301A',
@@ -433,6 +506,17 @@ const LOCATIONS = [
     id: 'MB307',
     name: 'MB307',
     aliases: ['mb 307', 'main block 307'],
+    block: 'MB',
+    floor: 3,
+    type: LOCATION_TYPES.ROOM,
+    scannable: false,
+    selectable: true
+  },
+
+  {
+    id: 'MB_F3_BOYS_RESTROOM',
+    name: 'Boys Restroom (Third Floor)',
+    aliases: ['mb third floor boys restroom', 'boys toilet', 'gents washroom'],
     block: 'MB',
     floor: 3,
     type: LOCATION_TYPES.ROOM,
@@ -559,8 +643,8 @@ const LOCATIONS = [
 
   // Campus paths (non-selectable waypoints)
   {
-    id: 'CAMPUS_SOUTH_PATH',
-    name: 'Campus South Path',
+    id: 'CAMPUS_WEST_PATH',
+    name: 'Campus West Path',
     aliases: [],
     block: 'CAMPUS',
     floor: 0,
@@ -569,8 +653,8 @@ const LOCATIONS = [
     selectable: false
   },
   {
-    id: 'CAMPUS_EAST_PATH',
-    name: 'Campus East Path',
+    id: 'CAMPUS_SOUTH_PATH',
+    name: 'Campus South Path',
     aliases: [],
     block: 'CAMPUS',
     floor: 0,

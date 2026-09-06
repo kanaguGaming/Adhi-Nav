@@ -61,14 +61,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Settings -->
-    <div class="text-center mt-16">
-      <button class="settings-btn" onclick="openSettings()" title="Settings">
-        ⚙️ Settings
-      </button>
-    </div>
-
   </section>
 
 
@@ -92,16 +84,7 @@
       </div>
     </div>
 
-    <div id="scan-confirm" class="hidden">
-      <div class="glass-card location-detected">
-        <div class="check-icon">📍</div>
-        <div class="location-name" id="detected-location-name">—</div>
-        <div class="location-block" id="detected-location-block">—</div>
-      </div>
-      <button id="btn-confirm-location" class="btn btn-success btn-full" onclick="confirmScannedLocation()">
-        ✅ Confirm — Choose Destination
-      </button>
-    </div>
+
 
     <div class="manual-entry mt-16">
       <button class="link-btn" onclick="showScreen('screen-manual-location')">
@@ -134,10 +117,6 @@
         <!-- Populated dynamically -->
       </div>
     </div>
-
-    <button id="btn-manual-confirm" class="btn btn-primary btn-full hidden" onclick="confirmManualLocation()">
-      ✅ Confirm Location
-    </button>
 
   </section>
 
@@ -174,10 +153,6 @@
         <!-- Populated dynamically -->
       </div>
     </div>
-
-    <button id="btn-navigate" class="btn btn-primary btn-full hidden" onclick="startNavigation()">
-      🧭 Navigate
-    </button>
 
   </section>
 
