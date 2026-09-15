@@ -16,41 +16,41 @@ const NAV_GRAPH = {
   'MB_ENTRANCE': [
     {
       to: 'MB_GF_CORRIDOR',
-      forward: 'Enter the Main Block from the West Entrance. You are now in the ground floor corridor, facing east. The main staircase is immediately here.',
-      reverse: 'Walk towards the West Entrance of the Main Block and exit.'
+      forward: 'Enter the Main Block through the main entrance. You are now in the ground floor corridor. The main staircase is immediately ahead.',
+      reverse: 'Walk towards the main entrance of the Main Block and exit.'
     },
     {
       to: 'MB_WEST_PORTICO',
-      forward: 'You are already at the West Portico (the Main Entrance).',
+      forward: 'You are already at the Main Entrance (West Portico).',
       reverse: 'You are already at the Main Entrance.'
     },
     {
       to: 'CAMPUS_WEST_PATH',
-      forward: 'From the West Entrance, head south along the campus path on the west side of the building.',
-      reverse: 'Walk north along the west path until you reach the Main Block entrance.'
+      forward: 'From the main entrance, turn right and walk along the campus path beside the building.',
+      reverse: 'Walk straight along the path until you reach the Main Block entrance.'
     }
   ],
 
   'MB_GF_CORRIDOR': [
     {
       to: 'MB_GF_LEFT_WING',
-      forward: 'While facing east, turn LEFT into the left wing corridor.',
+      forward: 'Turn left into the left wing corridor.',
       reverse: 'Walk back to the main ground floor corridor.'
     },
     {
       to: 'MB_GF_RIGHT_WING',
-      forward: 'While facing east, turn RIGHT into the right wing corridor.',
+      forward: 'Turn right into the right wing corridor.',
       reverse: 'Walk back to the main ground floor corridor.'
     },
     {
       to: 'MB_GF_STAIRS',
-      forward: 'Walk straight ahead towards the staircase at the end of the ground floor corridor.',
-      reverse: 'Walk down from the staircase into the ground floor corridor.'
+      forward: 'Walk straight ahead towards the staircase at the end of the corridor.',
+      reverse: 'Walk down the stairs and you are in the ground floor corridor.'
     },
     {
       to: 'MB_EAST_PORTICO',
-      forward: 'Walk straight through the corridor and continue to the East Portico.',
-      reverse: 'Enter the Main Block from the East Portico into the ground floor corridor.'
+      forward: 'Walk straight through the corridor all the way to the other entrance (East Portico).',
+      reverse: 'Enter the Main Block from the rear entrance and walk straight through the corridor.'
     }
   ],
 
@@ -112,23 +112,23 @@ const NAV_GRAPH = {
     },
     {
       to: 'MB_F1_LEFT_WING',
-      forward: 'At the first floor landing, while facing east, turn LEFT.',
+      forward: 'At the first floor landing, turn left into the corridor.',
       reverse: 'Walk back to the first floor stairs landing.'
     },
     {
       to: 'MB_F1_STRAIGHT',
-      forward: 'At the first floor landing, look STRAIGHT ahead while facing east.',
+      forward: 'At the first floor landing, go straight ahead into the corridor.',
       reverse: 'Walk back to the first floor stairs landing.'
     },
     {
       to: 'MB_F1_RIGHT_WING',
-      forward: 'At the first floor landing, while facing east, turn RIGHT.',
+      forward: 'At the first floor landing, turn right into the corridor.',
       reverse: 'Walk back to the first floor stairs landing.'
     },
     {
       to: 'MB_F1_EAST_PORTICO_STAIRS',
-      forward: 'Head straight through the corridor towards the east portico, then find the stairs on the north side.',
-      reverse: 'Walk back from the east portico stairs to the first floor main staircase.'
+      forward: 'Walk straight through the corridor to the rear entrance, then find the stairs on the side.',
+      reverse: 'Walk back from the rear stairs to the first floor main staircase.'
     }
   ],
 
@@ -149,7 +149,7 @@ const NAV_GRAPH = {
   'MB_F1_STRAIGHT': [
     {
       to: 'MB103AB',
-      forward: 'MB103 A/B is straight ahead when you face east from the first floor stairs.',
+      forward: 'MB103 A/B is straight ahead from the first floor stairs.',
       reverse: 'Walk back towards the staircase from MB103 A/B.'
     }
   ],
@@ -197,17 +197,17 @@ const NAV_GRAPH = {
     },
     {
       to: 'MB_F2_LEFT_WING',
-      forward: 'At the second floor landing, while facing east, turn LEFT.',
+      forward: 'At the second floor landing, turn left into the corridor.',
       reverse: 'Walk back to the second floor stairs landing.'
     },
     {
       to: 'MB_F2_STRAIGHT',
-      forward: 'At the second floor landing, look STRAIGHT ahead while facing east.',
+      forward: 'At the second floor landing, go straight ahead into the corridor.',
       reverse: 'Walk back to the second floor stairs landing.'
     },
     {
       to: 'MB_F2_RIGHT_WING',
-      forward: 'At the second floor landing, while facing east, turn RIGHT.',
+      forward: 'At the second floor landing, turn right into the corridor.',
       reverse: 'Walk back to the second floor stairs landing.'
     }
   ],
@@ -233,7 +233,7 @@ const NAV_GRAPH = {
   'MB_F2_STRAIGHT': [
     {
       to: 'MB203X',
-      forward: 'MB203x is straight ahead when you face east from the second floor stairs.',
+      forward: 'MB203x is straight ahead from the second floor stairs.',
       reverse: 'Walk back towards the staircase from MB203x.'
     }
   ],
@@ -253,12 +253,12 @@ const NAV_GRAPH = {
   'MB_F3_STAIRS': [
     {
       to: 'MB_F3_LEFT_WING',
-      forward: 'At the third floor landing, while facing east, turn LEFT.',
+      forward: 'At the third floor landing, turn left into the corridor.',
       reverse: 'Walk back to the third floor stairs landing.'
     },
     {
       to: 'MB_F3_RIGHT_WING',
-      forward: 'At the third floor landing, while facing east, turn RIGHT.',
+      forward: 'At the third floor landing, turn right into the corridor.',
       reverse: 'Walk back to the third floor stairs landing.'
     }
   ],
@@ -322,8 +322,8 @@ const NAV_GRAPH = {
   'MB_EAST_PORTICO': [
     {
       to: 'CAMPUS_SOUTH_PATH',
-      forward: 'Exit the East Portico and head south to join the main east-west campus path.',
-      reverse: 'Walk north from the campus path to enter the East Portico.'
+      forward: 'Exit through the rear entrance and turn right to join the main campus path.',
+      reverse: 'Follow the campus path and turn left to enter the building through the rear entrance.'
     }
   ],
 
@@ -335,8 +335,8 @@ const NAV_GRAPH = {
   'MB_WEST_PORTICO': [
     {
       to: 'CAMPUS_WEST_PATH',
-      forward: 'Head south along the campus path on the west side of the building.',
-      reverse: 'Walk north along the west path to reach the West Portico.'
+      forward: 'From the main entrance, turn right and walk along the path beside the building.',
+      reverse: 'Walk straight along the path to reach the Main Entrance.'
     }
   ],
 
@@ -348,29 +348,29 @@ const NAV_GRAPH = {
   'CAMPUS_WEST_PATH': [
     {
       to: 'ECE_BLOCK',
-      forward: 'Continue walking south along the west path. The ECE Block is ahead.',
-      reverse: 'Walk north from the ECE Block towards the Main Block.'
+      forward: 'Walk straight ahead along the path beside the building. The ECE Block is ahead on your right.',
+      reverse: 'Walk straight past the ECE Block back towards the Main Block.'
     },
     {
       to: 'CAMPUS_SOUTH_PATH',
-      forward: 'Turn left to head east along the path running south of the Main Block.',
-      reverse: 'Turn right to head north along the west path.'
+      forward: 'At the corner, turn left to follow the path along the back of the Main Block.',
+      reverse: 'At the corner, turn right and continue along the path.'
     }
   ],
 
   'ECE_BLOCK': [
     {
       to: 'AB_ENTRANCE',
-      forward: 'Continue walking south past the ECE Block. The Admin Block is further south.',
-      reverse: 'Walk north from the Admin Block, passing the ECE Block.'
+      forward: 'Continue walking straight past the ECE Block. The Admin Block entrance is further ahead.',
+      reverse: 'Walk straight from the Admin Block, passing the ECE Block, back towards the Main Block.'
     }
   ],
 
   'CAMPUS_SOUTH_PATH': [
     {
       to: 'CANTEEN',
-      forward: 'Follow this path east. The Canteen is on the far east side of the campus.',
-      reverse: 'From the Canteen, follow the path west.'
+      forward: 'Follow this path straight ahead. The Canteen is at the far end.',
+      reverse: 'From the Canteen, walk straight back along this path.'
     }
   ],
 
@@ -382,12 +382,12 @@ const NAV_GRAPH = {
   'AB_ENTRANCE': [
     {
       to: 'AB_GF_IMMEDIATE_LEFT',
-      forward: 'Enter the Admin Block (facing west). Immediately turn LEFT.',
+      forward: 'Enter the Admin Block through the main entrance. Immediately turn left.',
       reverse: 'Turn right and walk back to the Admin Block entrance.'
     },
     {
       to: 'AB_GF_LEFT_LANE',
-      forward: 'Enter the Admin Block (facing west). Take the left path (to the left of the elevator).',
+      forward: 'Enter the Admin Block through the main entrance. Take the left path (to the left of the elevator).',
       reverse: 'Walk back along the left lane to the Admin Block entrance.'
     }
   ],
@@ -403,13 +403,13 @@ const NAV_GRAPH = {
   'AB_GF_LEFT_LANE': [
     {
       to: 'AB003',
-      forward: 'AB003 is the first room along the left lane (left of elevator), facing west.',
-      reverse: 'Exit AB003 and step into the left lane corridor.'
+      forward: 'AB003 is the first room along the left corridor (to the left of the elevator).',
+      reverse: 'Exit AB003 and step into the left corridor.'
     },
     {
       to: 'AB004',
-      forward: 'Continue along the left lane past AB003. AB004 is the last room in this lane.',
-      reverse: 'Exit AB004 and step into the left lane corridor.'
+      forward: 'Walk straight past AB003. AB004 is the last room at the end of this corridor.',
+      reverse: 'Exit AB004 and step back into the corridor.'
     }
   ],
 

@@ -1,6 +1,6 @@
 // ============================================================
 // AdhiNav — Main Application Controller
-// Screen management, QR scanning, navigation engine, AI chat
+// Screen management, QR scanning (rear cam only), navigation
 // ============================================================
 
 // ── Config ─────────────────────────────────────────────────
@@ -60,32 +60,58 @@ function onScreenEnter(screenId) {
 }
 
 
-// ── QR Scanner ─────────────────────────────────────────────
+// ── QR Scanner (Rear Camera Only) ──────────────────────────
 
 function startQRScanner() {
   // Reset scan UI
-  document.getElementById('scan-result').classList.add('hidden');
-  document.getElementById('scan-confirm').classList.add('hidden');
+  const scanResult = document.getElementById('scan-result');
+  if (scanResult) scanResult.classList.add('hidden');
 
   if (scannerActive) return;
 
   try {
-    qrScanner = new Html5QrcodeScanner(
-      "reader",
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0,
-        showTorchButtonIfSupported: true,
-        rememberLastUsedCamera: true
-      },
-      false // verbose
-    );
+    // Use Html5Qrcode (not Scanner) for full programmatic control
+    qrScanner = new Html5Qrcode("qr-reader");
 
-    qrScanner.render(onScanSuccess, onScanError);
-    scannerActive = true;
+    // Configuration for rear camera only
+    const config = {
+      fps: 10,
+      qrbox: { width: 250, height: 250 },
+      aspectRatio: 1.0
+    };
+
+    // Force rear/environment camera — no selfie cam
+    const cameraConstraints = {
+      facingMode: { exact: "environment" }
+    };
+
+    qrScanner.start(
+      cameraConstraints,
+      config,
+      onScanSuccess,
+      onScanError
+    ).then(() => {
+      scannerActive = true;
+      console.log('📷 Rear camera started successfully');
+    }).catch((err) => {
+      console.warn('⚠️ Environment camera failed, trying any camera:', err);
+      // Fallback: try any available camera
+      qrScanner.start(
+        { facingMode: "environment" },
+        config,
+        onScanSuccess,
+        onScanError
+      ).then(() => {
+        scannerActive = true;
+        console.log('📷 Camera started (fallback mode)');
+      }).catch((fallbackErr) => {
+        console.error('❌ All camera attempts failed:', fallbackErr);
+        showToast('📷 Camera access needed for scanning', 'warning');
+      });
+    });
+
   } catch (e) {
-    console.error('Failed to start QR scanner:', e);
+    console.error('Failed to initialize QR scanner:', e);
     showToast('📷 Camera access needed for scanning', 'warning');
   }
 }
@@ -93,11 +119,17 @@ function startQRScanner() {
 function stopQRScanner() {
   if (qrScanner && scannerActive) {
     try {
-      qrScanner.clear();
+      qrScanner.stop().then(() => {
+        scannerActive = false;
+        console.log('📷 Camera stopped');
+      }).catch((e) => {
+        // Ignore cleanup errors
+        scannerActive = false;
+      });
     } catch (e) {
       // Ignore cleanup errors
+      scannerActive = false;
     }
-    scannerActive = false;
   }
 }
 
@@ -113,16 +145,19 @@ function onScanSuccess(decodedText, decodedResult) {
     showScreen('screen-destination');
   } else {
     // Not an AdhiNav QR code
-    document.getElementById('scan-result').classList.remove('hidden');
-    document.getElementById('scan-result').innerHTML = `
-      <div class="scan-result" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2);">
-        <span class="icon">❌</span>
-        <div class="info">
-          <div class="label">Not recognized</div>
-          <div class="value" style="color: var(--accent-danger);">This QR code is not an AdhiNav location</div>
+    const scanResult = document.getElementById('scan-result');
+    if (scanResult) {
+      scanResult.classList.remove('hidden');
+      scanResult.innerHTML = `
+        <div class="scan-result" style="background: rgba(239, 68, 68, 0.06); border-color: rgba(239, 68, 68, 0.18);">
+          <span class="icon">❌</span>
+          <div class="info">
+            <div class="label">Not recognized</div>
+            <div class="value" style="color: var(--accent-danger);">This QR code is not an AdhiNav location</div>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
   }
 }
 
@@ -135,8 +170,8 @@ function onScanError(errorMessage) {
 
 function populateManualLocations() {
   selectedManualLocationId = null;
-  document.getElementById('btn-manual-confirm').classList.add('hidden');
-  document.getElementById('manual-search').value = '';
+  const searchInput = document.getElementById('manual-search');
+  if (searchInput) searchInput.value = '';
   renderManualLocationList(getScannableLocations());
 }
 
@@ -207,8 +242,8 @@ function selectManualLocation(locId) {
 
 function populateDestinations() {
   selectedDestinationId = null;
-  document.getElementById('btn-navigate').classList.add('hidden');
-  document.getElementById('dest-search').value = '';
+  const searchInput = document.getElementById('dest-search');
+  if (searchInput) searchInput.value = '';
   renderDestinationList(getSelectableLocations());
 }
 
@@ -311,9 +346,6 @@ function startNavigation() {
 
   // Render first step
   renderCurrentStep();
-
-  // Reset AI chat
-  resetAIChat();
 }
 
 function renderCurrentStep() {
@@ -349,20 +381,35 @@ function renderCurrentStep() {
 
   // Update button states
   document.getElementById('btn-prev').disabled = !navSession.canGoPrevious();
-  document.getElementById('btn-next').disabled = !navSession.canGoNext();
 
-  // Update "I Reached" button label based on step position
-  const reachedBtn = document.getElementById('btn-reached');
+  // On the last step, Next button leads to arrived screen
+  const nextBtn = document.getElementById('btn-next');
   if (current === total) {
-    document.getElementById('btn-next').disabled = true;
-    reachedBtn.innerHTML = '🏁 I\'ve Arrived!';
+    nextBtn.disabled = false;
+    nextBtn.innerHTML = 'Arrived 🏁';
   } else {
-    reachedBtn.innerHTML = '✅ I Reached Here';
+    nextBtn.disabled = false;
+    nextBtn.innerHTML = 'Next ▶';
   }
 }
 
 function navNext() {
-  if (navSession && navSession.canGoNext()) {
+  if (!navSession) return;
+
+  const total = navSession.getTotalSteps();
+  const current = navSession.currentStepIndex + 1;
+
+  // If on the last step, show the arrived screen
+  if (current === total) {
+    const destLoc = navSession.endLocation;
+    document.getElementById('arrived-destination').textContent =
+      `You have arrived at ${destLoc?.name || 'your destination'}! 🎉`;
+    showScreen('screen-arrived');
+    showToast('🎉 You\'ve arrived!', 'success');
+    return;
+  }
+
+  if (navSession.canGoNext()) {
     navSession.next();
     renderCurrentStep();
   }
@@ -372,26 +419,14 @@ function navPrevious() {
   if (navSession && navSession.canGoPrevious()) {
     navSession.previous();
     renderCurrentStep();
+    showScreen('screen-navigation');
   }
 }
 
-function navReached() {
-  if (!navSession) return;
-
-  // If on the last step, mark complete and show success
-  if (!navSession.canGoNext()) {
-    navSession.markReached();
-    const destLoc = navSession.endLocation;
-    document.getElementById('success-destination').textContent =
-      `You've successfully navigated to ${destLoc?.name || 'your destination'}`;
-    showScreen('screen-success');
-    showToast('🎉 Navigation complete!', 'success');
-  } else {
-    // Otherwise, advance to the next step ("I reached this point")
-    navSession.next();
-    renderCurrentStep();
-    showToast('✅ Great! Here\'s your next step', 'success');
-  }
+function returnToLastStep() {
+  // Go back from arrived screen to the last navigation step
+  showScreen('screen-navigation');
+  renderCurrentStep();
 }
 
 function navLost() {
@@ -434,160 +469,6 @@ function navigateAgain() {
   }
   selectedDestinationId = null;
   showScreen('screen-destination');
-}
-
-
-// ── AI Chat (Groq Integration) ─────────────────────────────
-
-function toggleAIChat() {
-  const panel = document.getElementById('ai-chat-panel');
-  panel.classList.toggle('open');
-
-  const btn = document.getElementById('ai-toggle');
-  btn.textContent = panel.classList.contains('open')
-    ? '🤖 Hide AI Assistant'
-    : '🤖 Ask AI Assistant for Help';
-}
-
-function resetAIChat() {
-  document.getElementById('chat-messages').innerHTML = `
-    <div class="chat-bubble ai">
-      <div class="ai-label">AI Assistant</div>
-      Hi! I'm here to help you navigate. Ask me anything about directions, rooms, or the campus! 😊
-    </div>
-  `;
-  document.getElementById('ai-chat-panel').classList.remove('open');
-  document.getElementById('ai-toggle').textContent = '🤖 Ask AI Assistant for Help';
-}
-
-async function sendChat() {
-  const input = document.getElementById('chat-input');
-  const message = input.value.trim();
-  if (!message) return;
-
-  const apiKey = GROQ_API_KEY;
-
-  // Add user message
-  addChatBubble(message, 'user');
-  input.value = '';
-
-  // Show typing indicator
-  const typingId = addTypingIndicator();
-
-  try {
-    const context = navSession ? navSession.getContextForAI() : {};
-
-    const systemPrompt = buildAISystemPrompt(context);
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
-        temperature: 0.7,
-        max_tokens: 300
-      })
-    });
-
-    removeTypingIndicator(typingId);
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const aiMessage = data.choices?.[0]?.message?.content || 'Sorry, I couldn\'t process that. Try again!';
-
-    addChatBubble(aiMessage, 'ai');
-
-  } catch (error) {
-    removeTypingIndicator(typingId);
-    console.error('AI Chat error:', error);
-
-    if (error.message.includes('401')) {
-      addChatBubble('⚠️ Invalid API key. Please check your Groq API key in Settings.', 'ai');
-    } else {
-      addChatBubble('😔 Sorry, I couldn\'t connect to the AI service. Please check your internet connection and try again.', 'ai');
-    }
-  }
-}
-
-function buildAISystemPrompt(context) {
-  return `You are AdhiNav AI, a friendly and helpful campus navigation assistant for ACET (Adhiparasakthi College of Engineering and Technology). You help students and visitors find their way around campus.
-
-CAMPUS LAYOUT:
-- Main Block (MB): Central building. The Main Entrance (West Portico) is on the WEST side. East Portico is on the EAST side. Rooms are named MBxyz where x=floor, yz=room number.
-  - The main staircase is located immediately inside the West Entrance.
-  - The left-most room (North side) of each floor is always the Girls Restroom.
-  - The right-most room (South side) of each floor is always the Boys Restroom.
-  - Ground Floor: MB_GF_GIRLS_RESTROOM, MB001-MB003 (North side), MB004, MB_GF_BOYS_RESTROOM (South side)
-  - First Floor: MB_F1_GIRLS_RESTROOM, MB102/Radhakrishnan Seminar Hall (turn left from stairs), MB103A/B (straight from stairs), MB103C (north side east portico stairs), MB104-MB106, MB_F1_BOYS_RESTROOM (turn right from stairs)
-  - Second Floor: MB_F2_GIRLS_RESTROOM, MB202, MB203 (turn left from stairs), MB203x (straight from stairs), MB_F2_BOYS_RESTROOM (turn right from stairs)
-  - Third Floor: MB_F3_GIRLS_RESTROOM, MB301A, MB301B, MB302 (turn left from stairs), MB304-MB307, MB_F3_BOYS_RESTROOM (turn right from stairs)
-- ECE Block (EC): Located South of the Main Block's West Entrance, along the West path.
-- Admin Block (AB): Located far South of the ECE Block. Entrance faces West.
-  - Ground Floor: AB002 (immediate left entering), AB003 (left lane, left of elevator), AB004 (end of left lane), AB005 (turn right from AB004)
-- Canteen: Located far East. Accessible via a path running East-West on the South side of the Main Block.
-
-CURRENT NAVIGATION STATE:
-${context.from ? `- Navigating FROM: ${context.from}` : '- No active navigation'}
-${context.to ? `- Navigating TO: ${context.to}` : ''}
-${context.currentStep ? `- Current step: ${context.currentStep} of ${context.totalSteps}` : ''}
-${context.currentInstruction ? `- Current instruction: ${context.currentInstruction}` : ''}
-${context.currentLocation ? `- Currently at/near: ${context.currentLocation}` : ''}
-${context.progress ? `- Progress: ${context.progress}%` : ''}
-
-RULES:
-- Be concise, friendly, and encouraging. Use emojis sparingly.
-- Give clear directional instructions (left, right, straight, up, down).
-- Reference landmarks (stairs, portico, elevator) when helpful.
-- If asked about rooms you don't know about, say so honestly.
-- Keep responses SHORT (2-4 sentences max).
-- Always orient directions with "facing east" in Main Block and "facing west" in Admin Block.`;
-}
-
-function addChatBubble(message, type) {
-  const container = document.getElementById('chat-messages');
-  const bubble = document.createElement('div');
-  bubble.className = `chat-bubble ${type}`;
-
-  if (type === 'ai') {
-    bubble.innerHTML = `<div class="ai-label">AI Assistant</div>${escapeHtml(message)}`;
-  } else {
-    bubble.textContent = message;
-  }
-
-  container.appendChild(bubble);
-  container.scrollTop = container.scrollHeight;
-}
-
-function addTypingIndicator() {
-  const container = document.getElementById('chat-messages');
-  const id = 'typing-' + Date.now();
-  const bubble = document.createElement('div');
-  bubble.className = 'chat-bubble ai loading';
-  bubble.id = id;
-  bubble.innerHTML = `
-    <div class="ai-label">AI Assistant</div>
-    <div class="typing-dots">
-      <span></span><span></span><span></span>
-    </div>
-  `;
-  container.appendChild(bubble);
-  container.scrollTop = container.scrollHeight;
-  return id;
-}
-
-function removeTypingIndicator(id) {
-  const el = document.getElementById(id);
-  if (el) el.remove();
 }
 
 

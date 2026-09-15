@@ -4,14 +4,50 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="description" content="AdhiNav — Smart indoor navigation for ACET college. Scan QR codes and get step-by-step walking directions.">
-  <meta name="theme-color" content="#050816">
-  <title>AdhiNav — College Navigator</title>
+  <meta name="theme-color" content="#050d1a">
+  <title>AdhiNav — Campus Navigator</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
 
+<!-- ════════════════════════════════════════════════════════
+     SPLASH SCREEN — Logo fade in/out
+     ════════════════════════════════════════════════════════ -->
+<div class="splash-screen" id="splash-screen">
+  <div class="splash-content">
+    <div class="splash-logo">
+      <img src="logo.png" alt="ACET" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+      <span class="splash-logo-fallback" style="display:none;">🧭</span>
+    </div>
+    <div class="splash-title">AdhiNav</div>
+    <div class="splash-tagline">Smart Campus Navigator</div>
+  </div>
+  <div class="splash-glow"></div>
+</div>
+
+<!-- Dynamic animated background orbs -->
+<div class="bg-orbs" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
 <div id="app">
+
+  <!-- ════════════════════════════════════════════════════════
+       GLOBAL HEADER — Institution Logo + App Name
+       ════════════════════════════════════════════════════════ -->
+  <header class="global-header" id="global-header">
+    <img src="logo.png" alt="ACET Logo" class="header-logo" id="header-logo" onerror="this.style.display='none'">
+    <div class="header-text">
+      <span class="header-title">AdhiNav</span>
+      <span class="header-subtitle">ACET Campus Navigator</span>
+    </div>
+  </header>
+
 
   <!-- ════════════════════════════════════════════════════════
        SCREEN 1: LANDING PAGE
@@ -20,7 +56,10 @@
 
     <!-- Branding -->
     <div class="brand">
-      <div class="brand-logo">🧭</div>
+      <div class="brand-logo">
+        <img src="logo.png" alt="ACET" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+        <span class="brand-logo-fallback" style="display:none;">🧭</span>
+      </div>
       <h1>AdhiNav</h1>
       <p>Smart Campus Navigator — ACET</p>
     </div>
@@ -28,7 +67,7 @@
     <!-- Scan CTA -->
     <div class="glass-card text-center">
       <h2><span class="icon">📱</span> Get Started</h2>
-      <p class="text-muted mb-16" style="font-size: 0.85rem;">Scan a QR code placed around campus to start navigating</p>
+      <p class="text-muted mb-16" style="font-size: 0.82rem;">Scan a QR code placed around campus to start navigating</p>
       <button id="btn-start-scan" class="btn btn-primary btn-full" onclick="showScreen('screen-scanner')">
         📷 Scan QR Code
       </button>
@@ -70,21 +109,28 @@
   <section id="screen-scanner" class="screen">
 
     <div class="top-bar">
-      <button class="back-btn" onclick="showScreen('screen-landing')">← Back</button>
+      <button class="back-btn" onclick="showScreen('screen-landing')">
+        <span class="back-icon">←</span> Back
+      </button>
     </div>
 
     <div class="glass-card">
       <h2><span class="icon">📷</span> Scan QR Code</h2>
-      <p class="text-muted mb-16" style="font-size: 0.85rem;">Point your camera at any AdhiNav QR code placed around campus</p>
-      <div class="scanner-container">
-        <div id="reader"></div>
+      <p class="text-muted mb-16" style="font-size: 0.82rem;">Point your rear camera at any AdhiNav QR code</p>
+      <div class="scanner-container" id="scanner-container">
+        <div id="qr-reader"></div>
+        <!-- Scanner overlay with gold corner brackets -->
+        <div class="scanner-overlay">
+          <div class="scanner-corner-tr"></div>
+          <div class="scanner-corner-bl"></div>
+          <div class="scanner-line"></div>
+          <div class="scanner-label">Align QR code within frame</div>
+        </div>
       </div>
       <div id="scan-result" class="hidden">
         <!-- Populated dynamically -->
       </div>
     </div>
-
-
 
     <div class="manual-entry mt-16">
       <button class="link-btn" onclick="showScreen('screen-manual-location')">
@@ -101,12 +147,14 @@
   <section id="screen-manual-location" class="screen">
 
     <div class="top-bar">
-      <button class="back-btn" onclick="showScreen('screen-landing')">← Back</button>
+      <button class="back-btn" onclick="showScreen('screen-landing')">
+        <span class="back-icon">←</span> Back
+      </button>
     </div>
 
     <div class="glass-card">
       <h2><span class="icon">📍</span> Where are you now?</h2>
-      <p class="text-muted mb-12" style="font-size: 0.85rem;">Select your current location</p>
+      <p class="text-muted mb-12" style="font-size: 0.82rem;">Select your current location</p>
 
       <div class="search-wrapper">
         <span class="search-icon">🔍</span>
@@ -127,16 +175,18 @@
   <section id="screen-destination" class="screen">
 
     <div class="top-bar">
-      <button class="back-btn" onclick="goBackFromDestination()">← Back</button>
+      <button class="back-btn" onclick="goBackFromDestination()">
+        <span class="back-icon">←</span> Back
+      </button>
     </div>
 
     <!-- Current location display -->
-    <div class="glass-card" style="padding: 16px 20px;">
+    <div class="glass-card" style="padding: 14px 20px;">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="font-size: 1.2rem;">📍</span>
+        <span style="font-size: 1.1rem;">📍</span>
         <div>
-          <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Your Location</div>
-          <div id="current-location-display" style="font-weight: 600; font-size: 0.95rem;">—</div>
+          <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;">Your Location</div>
+          <div id="current-location-display" style="font-weight: 600; font-size: 0.92rem;">—</div>
         </div>
       </div>
     </div>
@@ -158,12 +208,14 @@
 
 
   <!-- ════════════════════════════════════════════════════════
-       SCREEN 4: NAVIGATION
+       SCREEN 4: NAVIGATION — 3 Buttons Only
        ════════════════════════════════════════════════════════ -->
   <section id="screen-navigation" class="screen">
 
     <div class="top-bar">
-      <button class="back-btn" onclick="exitNavigation()">← Exit</button>
+      <button class="back-btn" onclick="exitNavigation()">
+        <span class="back-icon">←</span> Exit
+      </button>
     </div>
 
     <!-- Route display -->
@@ -188,41 +240,49 @@
       <div class="instruction-location" id="instruction-location">—</div>
     </div>
 
-    <!-- Navigation buttons -->
+    <!-- Navigation buttons — Prev + Next -->
     <div class="nav-actions">
       <button id="btn-prev" class="btn btn-secondary" onclick="navPrevious()" disabled>
-        ◀ Previous
+        ◀ Prev
       </button>
       <button id="btn-next" class="btn btn-primary" onclick="navNext()">
         Next ▶
       </button>
     </div>
-    <div class="nav-actions-row">
-      <button id="btn-reached" class="btn btn-success btn-full" onclick="navReached()">
-        ✅ I Reached
-      </button>
+
+    <!-- SOS Button — Always visible -->
+    <div class="nav-actions-sos">
       <button id="btn-lost" class="btn btn-warning btn-full" onclick="navLost()">
-        🆘 I'm Lost
+        🆘 SOS — I'm Lost
       </button>
     </div>
 
-    <!-- AI Assistant -->
-    <div class="ai-section mt-24">
-      <button class="ai-toggle" id="ai-toggle" onclick="toggleAIChat()">
-        🤖 Ask AI Assistant for Help
-      </button>
-      <div class="ai-chat-panel" id="ai-chat-panel">
-        <div class="chat-messages" id="chat-messages">
-          <div class="chat-bubble ai">
-            <div class="ai-label">AI Assistant</div>
-            Hi! I'm here to help you navigate. Ask me anything about directions, rooms, or the campus! 😊
-          </div>
-        </div>
-        <div class="chat-input-row">
-          <input type="text" class="chat-input" id="chat-input" placeholder="Ask about directions..." onkeypress="if(event.key==='Enter')sendChat()">
-          <button class="chat-send" onclick="sendChat()">➤</button>
-        </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════════
+       SCREEN 4B: ARRIVED
+       ════════════════════════════════════════════════════════ -->
+  <section id="screen-arrived" class="screen">
+
+    <div class="success-animation">
+      <div class="success-icon">🎉</div>
+      <h2>You've Arrived!</h2>
+      <p id="arrived-destination">You have reached your destination.</p>
+    </div>
+
+    <div class="glass-card text-center">
+      <div class="nav-actions">
+        <button class="btn btn-secondary" onclick="returnToLastStep()">
+          ◀ Prev
+        </button>
+        <button class="btn btn-warning" onclick="navLost()">
+          🆘 SOS
+        </button>
       </div>
+      <button class="btn btn-primary btn-full mt-12" onclick="showScreen('screen-landing')">
+        🏠 Back to Home
+      </button>
     </div>
 
   </section>
@@ -235,7 +295,7 @@
 
     <div class="success-animation">
       <div class="success-icon">🎉</div>
-      <h2>You've Arrived!</h2>
+      <h2>Navigation Complete!</h2>
       <p id="success-destination">—</p>
     </div>
 
@@ -252,12 +312,14 @@
 
 
   <!-- ════════════════════════════════════════════════════════
-       SCREEN 6: LOST
+       SCREEN 6: LOST / SOS
        ════════════════════════════════════════════════════════ -->
   <section id="screen-lost" class="screen">
 
     <div class="top-bar">
-      <button class="back-btn" onclick="returnToNavigation()">← Back to Navigation</button>
+      <button class="back-btn" onclick="returnToNavigation()">
+        <span class="back-icon">←</span> Back to Navigation
+      </button>
     </div>
 
     <div class="glass-card">
@@ -280,6 +342,7 @@
     </div>
 
   </section>
+
 
 </div><!-- /app -->
 
