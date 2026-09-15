@@ -60,60 +60,175 @@ function onScreenEnter(screenId) {
 }
 
 
-// ── QR Scanner (Rear Camera Only) ──────────────────────────
+// ── QR Scanner (Rear Camera Only + Permission Retry) ───────
 
-function startQRScanner() {
+let cameraRetryCount = 0;
+const MAX_CAMERA_RETRIES = 3;
+
+async function startQRScanner() {
   // Reset scan UI
   const scanResult = document.getElementById('scan-result');
   if (scanResult) scanResult.classList.add('hidden');
 
+  const deniedPanel = document.getElementById('camera-denied-panel');
+  if (deniedPanel) deniedPanel.classList.add('hidden');
+
   if (scannerActive) return;
 
+  // Step 1: Explicitly request camera permission via getUserMedia
+  // This forces the browser to show the permission prompt
+  let permissionGranted = false;
   try {
-    // Use Html5Qrcode (not Scanner) for full programmatic control
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    });
+    // Permission granted — stop the test stream immediately
+    stream.getTracks().forEach(track => track.stop());
+    permissionGranted = true;
+    console.log('📷 Camera permission granted');
+  } catch (permErr) {
+    console.warn('📷 Camera permission check failed:', permErr.name, permErr.message);
+
+    if (permErr.name === 'NotAllowedError' || permErr.name === 'PermissionDeniedError') {
+      // User denied permission — show the denied panel
+      showCameraDeniedPanel();
+      return;
+    }
+
+    if (permErr.name === 'NotFoundError' || permErr.name === 'DevicesNotFoundError') {
+      showToast('📷 No camera found on this device', 'error');
+      return;
+    }
+
+    // For OverconstrainedError (no environment camera), try without exact constraint
+    if (permErr.name === 'OverconstrainedError') {
+      try {
+        const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        fallbackStream.getTracks().forEach(track => track.stop());
+        permissionGranted = true;
+        console.log('📷 Camera permission granted (fallback)');
+      } catch (fallbackPermErr) {
+        if (fallbackPermErr.name === 'NotAllowedError' || fallbackPermErr.name === 'PermissionDeniedError') {
+          showCameraDeniedPanel();
+          return;
+        }
+        showToast('📷 Camera not available', 'error');
+        return;
+      }
+    }
+
+    // Other errors — still try to proceed
+    if (!permissionGranted) {
+      permissionGranted = true; // optimistic
+    }
+  }
+
+  if (!permissionGranted) return;
+
+  // Step 2: Start the QR scanner with the confirmed permission
+  try {
     qrScanner = new Html5Qrcode("qr-reader");
 
-    // Configuration for rear camera only
     const config = {
       fps: 10,
       qrbox: { width: 250, height: 250 },
       aspectRatio: 1.0
     };
 
-    // Force rear/environment camera — no selfie cam
-    const cameraConstraints = {
-      facingMode: { exact: "environment" }
-    };
-
-    qrScanner.start(
-      cameraConstraints,
-      config,
-      onScanSuccess,
-      onScanError
-    ).then(() => {
-      scannerActive = true;
-      console.log('📷 Rear camera started successfully');
-    }).catch((err) => {
-      console.warn('⚠️ Environment camera failed, trying any camera:', err);
-      // Fallback: try any available camera
-      qrScanner.start(
-        { facingMode: "environment" },
+    // Try rear camera first
+    try {
+      await qrScanner.start(
+        { facingMode: { exact: "environment" } },
         config,
         onScanSuccess,
         onScanError
-      ).then(() => {
+      );
+      scannerActive = true;
+      cameraRetryCount = 0;
+      console.log('📷 Rear camera started successfully');
+    } catch (envErr) {
+      console.warn('⚠️ Environment camera failed, trying fallback:', envErr);
+      // Fallback: try without exact constraint
+      try {
+        await qrScanner.start(
+          { facingMode: "environment" },
+          config,
+          onScanSuccess,
+          onScanError
+        );
         scannerActive = true;
+        cameraRetryCount = 0;
         console.log('📷 Camera started (fallback mode)');
-      }).catch((fallbackErr) => {
-        console.error('❌ All camera attempts failed:', fallbackErr);
-        showToast('📷 Camera access needed for scanning', 'warning');
-      });
-    });
+      } catch (fallbackErr) {
+        console.error('❌ All camera start attempts failed:', fallbackErr);
+        handleCameraStartError(fallbackErr);
+      }
+    }
 
   } catch (e) {
     console.error('Failed to initialize QR scanner:', e);
-    showToast('📷 Camera access needed for scanning', 'warning');
+    handleCameraStartError(e);
   }
+}
+
+function handleCameraStartError(error) {
+  const errorStr = String(error).toLowerCase();
+  const errorName = error?.name?.toLowerCase() || '';
+
+  if (errorStr.includes('permission') || errorStr.includes('denied') ||
+      errorStr.includes('notallowed') || errorName === 'notallowederror') {
+    showCameraDeniedPanel();
+  } else {
+    showToast('📷 Could not start camera. Try again.', 'warning');
+    showCameraDeniedPanel();
+  }
+}
+
+function showCameraDeniedPanel() {
+  const deniedPanel = document.getElementById('camera-denied-panel');
+  if (deniedPanel) {
+    deniedPanel.classList.remove('hidden');
+  }
+  // Hide the scanner container since there's no camera feed
+  const scannerContainer = document.getElementById('scanner-container');
+  if (scannerContainer) {
+    scannerContainer.style.display = 'none';
+  }
+}
+
+function hideCameraDeniedPanel() {
+  const deniedPanel = document.getElementById('camera-denied-panel');
+  if (deniedPanel) {
+    deniedPanel.classList.add('hidden');
+  }
+  const scannerContainer = document.getElementById('scanner-container');
+  if (scannerContainer) {
+    scannerContainer.style.display = '';
+  }
+}
+
+async function retryCameraPermission() {
+  cameraRetryCount++;
+  console.log(`📷 Camera retry attempt ${cameraRetryCount}/${MAX_CAMERA_RETRIES}`);
+
+  // Stop any existing scanner first
+  stopQRScanner();
+
+  // Clear out the qr-reader div so Html5Qrcode can reinitialize
+  const readerEl = document.getElementById('qr-reader');
+  if (readerEl) readerEl.innerHTML = '';
+
+  // Hide denied panel, show scanner container
+  hideCameraDeniedPanel();
+
+  if (cameraRetryCount > MAX_CAMERA_RETRIES) {
+    showToast('📷 Camera blocked. Please enable in browser settings.', 'error');
+    showCameraDeniedPanel();
+    return;
+  }
+
+  // Re-trigger the full permission + scanner flow
+  await startQRScanner();
 }
 
 function stopQRScanner() {
@@ -561,10 +676,32 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// ── Splash Screen ──────────────────────────────────────────
+
+function dismissSplash() {
+  const splash = document.getElementById('splash-screen');
+  if (splash) {
+    splash.classList.add('hidden');
+  }
+}
+
 // ── Initialization ─────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🧭 AdhiNav initialized');
   console.log(`📍 ${LOCATIONS.length} locations loaded`);
   console.log(`🔗 ${Object.keys(ADJACENCY).length} graph nodes`);
+
+  // Dismiss splash screen after fade-out animation completes
+  const splash = document.getElementById('splash-screen');
+  if (splash) {
+    // The CSS animation is: fade out at 2.8s, takes 0.6s → done at 3.4s
+    splash.addEventListener('animationend', (e) => {
+      if (e.animationName === 'splashFadeOut') {
+        dismissSplash();
+      }
+    });
+    // Fallback timeout in case animationend doesn't fire
+    setTimeout(dismissSplash, 3600);
+  }
 });

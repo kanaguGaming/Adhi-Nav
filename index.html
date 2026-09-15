@@ -130,6 +130,25 @@
       <div id="scan-result" class="hidden">
         <!-- Populated dynamically -->
       </div>
+
+      <!-- Camera permission denied panel -->
+      <div id="camera-denied-panel" class="hidden">
+        <div class="camera-denied">
+          <div class="camera-denied-icon">🔒</div>
+          <h3>Camera Access Required</h3>
+          <p>AdhiNav needs camera access to scan QR codes. Please allow camera permission when prompted.</p>
+          <button class="btn btn-primary btn-full mb-12" onclick="retryCameraPermission()">
+            📷 Allow Camera & Retry
+          </button>
+          <div class="camera-denied-help">
+            <p><strong>Still not working?</strong></p>
+            <p>Open your browser settings → Site permissions → Camera → Allow for this site, then tap retry.</p>
+          </div>
+          <button class="btn btn-secondary btn-full" onclick="showScreen('screen-manual-location')">
+            Select location manually instead
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="manual-entry mt-16">

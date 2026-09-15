@@ -582,7 +582,7 @@ body::after {
   padding: 14px 28px;
   border: none;
   border-radius: var(--radius-md);
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Sora', sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -813,6 +813,58 @@ body::after {
   border-radius: var(--radius-lg) !important;
 }
 
+/* ── Camera Permission Denied Panel ──────────────────────── */
+.camera-denied {
+  text-align: center;
+  padding: 24px 16px;
+  animation: fadeSlideIn 0.3s ease both;
+}
+
+.camera-denied-icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+
+.camera-denied h3 {
+  font-family: 'Sora', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.camera-denied > p {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.camera-denied-help {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.camera-denied-help p {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.camera-denied-help p:last-child {
+  margin-bottom: 0;
+}
+
+.camera-denied-help strong {
+  color: var(--text-accent);
+}
+
 .scan-result {
   display: flex;
   align-items: center;
@@ -872,7 +924,7 @@ body::after {
 }
 
 .location-detected .location-name {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Sora', sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -897,7 +949,7 @@ body::after {
   border: 1px solid var(--border-blue);
   border-radius: var(--radius-md);
   color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.9rem;
   outline: none;
   transition: var(--transition-base);
@@ -1218,7 +1270,7 @@ body::after {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.82rem;
   font-weight: 500;
 }
@@ -1244,7 +1296,7 @@ body::after {
   background: none;
   border: none;
   color: var(--text-accent);
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
@@ -1416,7 +1468,7 @@ body::after {
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   color: var(--text-primary);
-  font-family: 'Space Grotesk', monospace;
+  font-family: 'Sora', monospace;
   font-size: 0.85rem;
   outline: none;
   margin-bottom: 16px;
