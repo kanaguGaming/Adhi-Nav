@@ -91,6 +91,10 @@
           <span class="code-desc"><strong>Admin Block</strong> — South of campus</span>
         </div>
         <div class="code-item">
+          <span class="code-badge" style="background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(167,139,250,0.08)); color: #a78bfa;">EC</span>
+          <span class="code-desc"><strong>ECE Block</strong> — Electronics & Communication</span>
+        </div>
+        <div class="code-item">
           <span class="code-badge cn">CN</span>
           <span class="code-desc"><strong>Canteen</strong> — East side of campus</span>
         </div>
@@ -215,7 +219,16 @@
 
       <div class="search-wrapper">
         <span class="search-icon">🔍</span>
-        <input type="text" class="search-input" id="dest-search" placeholder="Search rooms, halls, canteen..." oninput="filterDestinations(this.value)">
+        <input type="text" class="search-input" id="dest-search" placeholder="Search rooms, labs, staffrooms, canteen..." oninput="filterDestinations(this.value)">
+      </div>
+
+      <!-- Block Filter Chips -->
+      <div class="filter-chips" id="block-filter-chips">
+        <button class="filter-chip active" data-block="ALL" onclick="setBlockFilter('ALL', this)">All</button>
+        <button class="filter-chip" data-block="MB" onclick="setBlockFilter('MB', this)">Main Block</button>
+        <button class="filter-chip" data-block="EC" onclick="setBlockFilter('EC', this)">ECE Block</button>
+        <button class="filter-chip" data-block="AB" onclick="setBlockFilter('AB', this)">Admin Block</button>
+        <button class="filter-chip" data-block="CN" onclick="setBlockFilter('CN', this)">Canteen</button>
       </div>
 
       <div class="destination-list" id="destination-list">
@@ -242,6 +255,19 @@
       <span class="route-point" id="nav-from">—</span>
       <span class="route-arrow">→</span>
       <span class="route-point" id="nav-to">—</span>
+    </div>
+
+    <!-- Interactive Map Panel (collapsible) -->
+    <div class="map-panel">
+      <button class="map-panel-toggle" id="map-toggle" onclick="toggleMapPanel()">
+        <span>🗺️ View Floor Map</span>
+        <span class="toggle-icon">▼</span>
+      </button>
+      <div class="map-panel-content" id="map-panel-content">
+        <div class="map-container" id="nav-map-container">
+          <!-- SVG map rendered here by mapRenderer.js -->
+        </div>
+      </div>
     </div>
 
     <!-- Progress -->
@@ -375,9 +401,11 @@
 
 
 <!-- Scripts -->
+<script src="html5-qrcode.min.js"></script>
 <script src="locations.js"></script>
 <script src="navGraph.js"></script>
 <script src="pathfinder.js"></script>
+<script src="mapRenderer.js"></script>
 <script src="app.js"></script>
 
 </body>

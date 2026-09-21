@@ -1642,6 +1642,398 @@ body::after {
   100% { background-position: 0% 50%; }
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   INTERACTIVE FLOOR MAP
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Map Container ──────────────────────────────────────── */
+.map-panel {
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.map-panel-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-family: inherit;
+}
+
+.map-panel-toggle:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-light);
+}
+
+.map-panel-toggle .toggle-icon {
+  font-size: 0.7rem;
+  transition: transform var(--transition-base);
+  color: var(--text-muted);
+}
+
+.map-panel-toggle.open .toggle-icon {
+  transform: rotate(180deg);
+}
+
+.map-panel-content {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease;
+}
+
+.map-panel-content.open {
+  max-height: 700px;
+  opacity: 1;
+}
+
+.map-container {
+  background: rgba(5, 13, 26, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 8px;
+  margin-top: 8px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── Map Tabs ───────────────────────────────────────────── */
+.map-tabs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.map-block-tabs,
+.map-floor-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 2px;
+}
+
+.map-block-tabs::-webkit-scrollbar,
+.map-floor-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.map-tab {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  font-family: 'Sora', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.map-tab:hover {
+  background: var(--bg-glass-hover);
+  color: var(--text-secondary);
+  border-color: var(--border-light);
+}
+
+.map-tab.active {
+  background: var(--gradient-gold);
+  color: #050d1a;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px rgba(212, 165, 32, 0.2);
+}
+
+.map-block-tab {
+  font-size: 0.65rem;
+  padding: 4px 10px;
+}
+
+.map-floor-tab {
+  min-width: 36px;
+  text-align: center;
+  font-size: 0.7rem;
+  padding: 4px 10px;
+}
+
+/* ── SVG Floor Map ──────────────────────────────────────── */
+.floor-map-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: var(--radius-md);
+  -webkit-overflow-scrolling: touch;
+}
+
+.floor-map-svg {
+  width: 100%;
+  height: auto;
+  min-height: 180px;
+  display: block;
+}
+
+/* ── Map Room Styles ────────────────────────────────────── */
+.map-corridor {
+  fill: rgba(30, 58, 110, 0.18);
+  stroke: rgba(37, 99, 235, 0.2);
+  stroke-width: 1;
+}
+
+.map-corridor-label {
+  fill: var(--text-muted);
+  font-size: 10px;
+  font-family: 'DM Sans', sans-serif;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  opacity: 0.5;
+}
+
+.map-room {
+  fill: rgba(30, 58, 110, 0.25);
+  stroke: rgba(148, 163, 196, 0.2);
+  stroke-width: 1.2;
+  cursor: pointer;
+  transition: fill 0.3s ease, stroke 0.3s ease;
+}
+
+.map-room:hover {
+  fill: rgba(37, 99, 235, 0.3);
+  stroke: rgba(37, 99, 235, 0.5);
+}
+
+.map-room-label {
+  fill: var(--text-secondary);
+  font-size: 10px;
+  font-family: 'DM Sans', sans-serif;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+/* Current location — blue pulsing */
+.map-room-current {
+  fill: rgba(37, 99, 235, 0.4);
+  stroke: #2563eb;
+  stroke-width: 2.5;
+  animation: mapPulseCurrent 2s ease-in-out infinite;
+}
+
+@keyframes mapPulseCurrent {
+  0%, 100% { stroke-opacity: 0.6; fill: rgba(37, 99, 235, 0.3); }
+  50% { stroke-opacity: 1; fill: rgba(37, 99, 235, 0.5); }
+}
+
+.map-label-current {
+  fill: #93b4ff;
+  font-weight: 600;
+}
+
+/* Destination — gold pulsing */
+.map-room-destination {
+  fill: rgba(212, 165, 32, 0.35);
+  stroke: #d4a520;
+  stroke-width: 2.5;
+  animation: mapPulseDestination 2s ease-in-out infinite;
+}
+
+@keyframes mapPulseDestination {
+  0%, 100% { stroke-opacity: 0.6; fill: rgba(212, 165, 32, 0.25); }
+  50% { stroke-opacity: 1; fill: rgba(212, 165, 32, 0.45); }
+}
+
+.map-label-destination {
+  fill: #f0c040;
+  font-weight: 600;
+}
+
+/* Path rooms — amber trail */
+.map-room-path {
+  fill: rgba(245, 158, 11, 0.2);
+  stroke: rgba(245, 158, 11, 0.5);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  animation: mapPathDash 1.5s linear infinite;
+}
+
+@keyframes mapPathDash {
+  to { stroke-dashoffset: -14; }
+}
+
+/* Stairs */
+.map-stairs {
+  fill: rgba(34, 197, 94, 0.2);
+  stroke: rgba(34, 197, 94, 0.35);
+  stroke-width: 1.5;
+  rx: 6;
+}
+
+.map-stairs-label {
+  fill: rgba(34, 197, 94, 0.8);
+  font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+/* Entrances */
+.map-entrance {
+  fill: rgba(212, 165, 32, 0.15);
+  stroke: rgba(212, 165, 32, 0.35);
+  stroke-width: 1.5;
+  rx: 6;
+}
+
+.map-entrance-label {
+  fill: var(--text-gold);
+  font-size: 9px;
+  font-family: 'DM Sans', sans-serif;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+/* Decorative (courtyards, etc.) */
+.map-decor {
+  fill: rgba(34, 197, 94, 0.06);
+  stroke: rgba(34, 197, 94, 0.15);
+  stroke-width: 1;
+  stroke-dasharray: 6 4;
+}
+
+.map-decor-label {
+  fill: rgba(34, 197, 94, 0.35);
+  font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  font-style: italic;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   BLOCK FILTER CHIPS (Destination Selector)
+   ═══════════════════════════════════════════════════════════ */
+
+.filter-chips {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 2px 0;
+}
+
+.filter-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-chip {
+  flex-shrink: 0;
+  padding: 5px 14px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: 'Sora', sans-serif;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.filter-chip:hover {
+  background: var(--bg-glass-hover);
+  color: var(--text-secondary);
+  border-color: var(--border-light);
+}
+
+.filter-chip.active {
+  background: var(--gradient-blue);
+  color: var(--text-primary);
+  border-color: var(--accent-secondary);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   LOCATION TYPE ICONS & BADGES (Enhanced)
+   ═══════════════════════════════════════════════════════════ */
+
+.dest-item .dest-type-badge {
+  display: inline-block;
+  font-size: 0.58rem;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.badge-staffroom {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.badge-lab {
+  background: rgba(139, 92, 246, 0.12);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.badge-restroom {
+  background: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.badge-office {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.badge-library {
+  background: rgba(236, 72, 153, 0.12);
+  color: #f472b6;
+  border: 1px solid rgba(236, 72, 153, 0.2);
+}
+
+.ec-icon {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(167, 139, 250, 0.08));
+  color: #a78bfa;
+}
+
+/* Floor label in destination list */
+.dest-floor {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+
 /* ── Reduced motion preference ───────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

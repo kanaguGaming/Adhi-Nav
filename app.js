@@ -1,6 +1,6 @@
 // ============================================================
-// AdhiNav — Main Application Controller
-// Screen management, QR scanning (rear cam only), navigation
+// AdhiNav — Main Application Controller (v2.0)
+// Screen management, QR scanning, navigation, map integration
 // ============================================================
 
 // ── Config ─────────────────────────────────────────────────
@@ -14,6 +14,9 @@ let selectedManualLocationId = null;
 let navSession = null;
 let qrScanner = null;
 let scannerActive = false;
+let mapRenderer = null;
+let mapPanelOpen = false;
+let activeBlockFilter = 'ALL';
 
 // ── Screen Manager ─────────────────────────────────────────
 
@@ -42,8 +45,10 @@ function onScreenEnter(screenId) {
       populateManualLocations();
       break;
     case 'screen-destination':
+      activeBlockFilter = 'ALL';
       populateDestinations();
       updateCurrentLocationDisplay();
+      resetBlockFilterChips();
       break;
     case 'screen-navigation':
       // Navigation setup happens in startNavigation()
@@ -127,6 +132,10 @@ async function startQRScanner() {
 
   // Step 2: Start the QR scanner with the confirmed permission
   try {
+    // Clear any leftover DOM nodes from a previous scanner session
+    const readerEl = document.getElementById('qr-reader');
+    if (readerEl) readerEl.innerHTML = '';
+
     qrScanner = new Html5Qrcode("qr-reader");
 
     const config = {
@@ -312,7 +321,7 @@ function renderManualLocationList(locations) {
           <div class="dest-icon ${iconClass}">${icon}</div>
           <div>
             <div class="dest-name">${loc.name}</div>
-            <div class="dest-block">${getLocationTypeName(loc.type)}</div>
+            <div class="dest-block">${getLocationTypeName(loc.type)}${loc.floor !== undefined ? ' · ' + getFloorName(loc.floor) : ''}</div>
           </div>
         </div>
       `;
@@ -366,7 +375,12 @@ function renderDestinationList(locations) {
   const list = document.getElementById('destination-list');
 
   // Filter out current location
-  const filtered = locations.filter(loc => loc.id !== currentLocationId);
+  let filtered = locations.filter(loc => loc.id !== currentLocationId);
+
+  // Apply block filter
+  if (activeBlockFilter && activeBlockFilter !== 'ALL') {
+    filtered = filtered.filter(loc => loc.block === activeBlockFilter);
+  }
 
   const grouped = {};
   filtered.forEach(loc => {
@@ -382,12 +396,13 @@ function renderDestinationList(locations) {
       const iconClass = getBlockIconClass(loc.block);
       const icon = getLocationIcon(loc);
       const isSelected = selectedDestinationId === loc.id;
+      const typeBadge = getTypeBadge(loc.type);
       html += `
         <div class="dest-item ${isSelected ? 'selected' : ''}" onclick="selectDestination('${loc.id}', this)">
           <div class="dest-icon ${iconClass}">${icon}</div>
           <div>
-            <div class="dest-name">${loc.name}</div>
-            <div class="dest-block">${BLOCKS[loc.block] || loc.block} · ${getLocationTypeName(loc.type)}</div>
+            <div class="dest-name">${loc.name}${typeBadge}</div>
+            <div class="dest-block">${BLOCKS[loc.block] || loc.block} · ${getFloorName(loc.floor)}</div>
           </div>
         </div>
       `;
@@ -408,18 +423,40 @@ function renderDestinationList(locations) {
 
 function filterDestinations(query) {
   const q = query.toLowerCase().trim();
-  let locations = getSelectableLocations();
 
   if (q) {
-    locations = locations.filter(loc => {
-      if (loc.id.toLowerCase().includes(q)) return true;
-      if (loc.name.toLowerCase().includes(q)) return true;
-      if (loc.aliases.some(a => a.includes(q))) return true;
-      return false;
-    });
+    // Use the smart search function from locations.js
+    const results = searchLocations(q);
+    renderDestinationList(results);
+  } else {
+    renderDestinationList(getSelectableLocations());
   }
+}
 
-  renderDestinationList(locations);
+function setBlockFilter(block, element) {
+  activeBlockFilter = block;
+
+  // Update active chip
+  document.querySelectorAll('#block-filter-chips .filter-chip').forEach(chip => {
+    chip.classList.remove('active');
+  });
+  if (element) element.classList.add('active');
+
+  // Re-render with filter
+  const searchInput = document.getElementById('dest-search');
+  const query = searchInput ? searchInput.value.trim() : '';
+  if (query) {
+    filterDestinations(query);
+  } else {
+    renderDestinationList(getSelectableLocations());
+  }
+}
+
+function resetBlockFilterChips() {
+  document.querySelectorAll('#block-filter-chips .filter-chip').forEach(chip => {
+    chip.classList.remove('active');
+    if (chip.dataset.block === 'ALL') chip.classList.add('active');
+  });
 }
 
 function selectDestination(locId, element) {
@@ -436,6 +473,46 @@ function updateCurrentLocationDisplay() {
 
 function goBackFromDestination() {
   showScreen('screen-landing');
+}
+
+
+// ── Map Panel ──────────────────────────────────────────────
+
+function toggleMapPanel() {
+  mapPanelOpen = !mapPanelOpen;
+  const content = document.getElementById('map-panel-content');
+  const toggle = document.getElementById('map-toggle');
+
+  if (mapPanelOpen) {
+    content.classList.add('open');
+    toggle.classList.add('open');
+    // Render map if navigation is active
+    if (navSession && mapRenderer) {
+      updateMapForCurrentStep();
+    }
+  } else {
+    content.classList.remove('open');
+    toggle.classList.remove('open');
+  }
+}
+
+function initMapRenderer() {
+  mapRenderer = new MapRenderer('nav-map-container');
+}
+
+function updateMapForCurrentStep() {
+  if (!mapRenderer || !navSession) return;
+
+  const step = navSession.getCurrentStep();
+  if (!step) return;
+
+  const allStepNodeIds = navSession.getAllSteps().map(s => s.nodeId);
+  mapRenderer.updateForNavStep(
+    step.nodeId,
+    navSession.startId,
+    navSession.endId,
+    allStepNodeIds
+  );
 }
 
 
@@ -458,6 +535,14 @@ function startNavigation() {
 
   // Show navigation screen
   showScreen('screen-navigation');
+
+  // Initialize map
+  initMapRenderer();
+  mapPanelOpen = false;
+  const content = document.getElementById('map-panel-content');
+  const toggle = document.getElementById('map-toggle');
+  if (content) content.classList.remove('open');
+  if (toggle) toggle.classList.remove('open');
 
   // Render first step
   renderCurrentStep();
@@ -505,6 +590,11 @@ function renderCurrentStep() {
   } else {
     nextBtn.disabled = false;
     nextBtn.innerHTML = 'Next ▶';
+  }
+
+  // Update map if panel is open
+  if (mapPanelOpen && mapRenderer) {
+    updateMapForCurrentStep();
   }
 }
 
@@ -574,6 +664,8 @@ function rescanQR() {
 
 function exitNavigation() {
   navSession = null;
+  mapRenderer = null;
+  mapPanelOpen = false;
   showScreen('screen-landing');
 }
 
@@ -620,8 +712,20 @@ function getBlockIconClass(block) {
 }
 
 function getLocationIcon(loc) {
+  // Use the enhanced icon function from locations.js if available
+  if (typeof getLocationTypeIcon === 'function') {
+    return getLocationTypeIcon(loc.type);
+  }
+
   switch (loc.type) {
     case LOCATION_TYPES.ROOM: return '🚪';
+    case LOCATION_TYPES.STAFFROOM: return '👨‍🏫';
+    case LOCATION_TYPES.LAB: return '🔬';
+    case LOCATION_TYPES.RESTROOM: return '🚻';
+    case LOCATION_TYPES.SEMINAR_HALL: return '🎤';
+    case LOCATION_TYPES.LIBRARY: return '📚';
+    case LOCATION_TYPES.OFFICE: return '🏢';
+    case LOCATION_TYPES.SHOP: return '🛒';
     case LOCATION_TYPES.ENTRANCE: return '🏛️';
     case LOCATION_TYPES.STAIRS: return '🪜';
     case LOCATION_TYPES.PORTICO: return '🏗️';
@@ -634,6 +738,13 @@ function getLocationIcon(loc) {
 function getLocationTypeName(type) {
   const map = {
     room: 'Room',
+    staffroom: 'Staffroom',
+    lab: 'Lab',
+    restroom: 'Restroom',
+    seminar_hall: 'Seminar Hall',
+    library: 'Library',
+    office: 'Office',
+    shop: 'Shop',
     stairs: 'Stairs',
     entrance: 'Entrance',
     portico: 'Portico',
@@ -644,6 +755,23 @@ function getLocationTypeName(type) {
   return map[type] || type;
 }
 
+function getTypeBadge(type) {
+  switch (type) {
+    case LOCATION_TYPES.STAFFROOM:
+      return '<span class="dest-type-badge badge-staffroom">Staff</span>';
+    case LOCATION_TYPES.LAB:
+      return '<span class="dest-type-badge badge-lab">Lab</span>';
+    case LOCATION_TYPES.RESTROOM:
+      return '<span class="dest-type-badge badge-restroom">WC</span>';
+    case LOCATION_TYPES.OFFICE:
+      return '<span class="dest-type-badge badge-office">Office</span>';
+    case LOCATION_TYPES.LIBRARY:
+      return '<span class="dest-type-badge badge-library">Library</span>';
+    default:
+      return '';
+  }
+}
+
 function getStepIcon(step, current, total) {
   if (current === 1) return '📍';
   if (current === total) return '🏁';
@@ -651,10 +779,13 @@ function getStepIcon(step, current, total) {
   // Smart directional parsing
   if (step && step.instruction) {
     const text = step.instruction.toLowerCase();
-    if (text.includes('stairs') || text.includes(' up ') || text.includes(' down ')) return '🪜';
-    if (text.includes('left')) return '⬅️';
-    if (text.includes('right')) return '➡️';
-    if (text.includes('straight') || text.includes('forward')) return '⬆️';
+    if (text.includes('climb up') || text.includes('walk down') || text.includes('stairs') || text.includes('flight')) return '🪜';
+    if (text.includes('turn left') || text.includes('take left')) return '⬅️';
+    if (text.includes('turn right') || text.includes('take right')) return '➡️';
+    if (text.includes('straight') || text.includes('ahead') || text.includes('walk along') || text.includes('continue')) return '⬆️';
+    if (text.includes('enter') || text.includes('entrance')) return '🏛️';
+    if (text.includes('exit')) return '🚪';
+    if (text.includes('glass door')) return '🚪';
   }
 
   const loc = step.location;
@@ -664,6 +795,13 @@ function getStepIcon(step, current, total) {
     case LOCATION_TYPES.STAIRS: return '🪜';
     case LOCATION_TYPES.ENTRANCE: return '🏛️';
     case LOCATION_TYPES.ROOM: return '🚪';
+    case LOCATION_TYPES.STAFFROOM: return '👨‍🏫';
+    case LOCATION_TYPES.LAB: return '🔬';
+    case LOCATION_TYPES.RESTROOM: return '🚻';
+    case LOCATION_TYPES.SEMINAR_HALL: return '🎤';
+    case LOCATION_TYPES.LIBRARY: return '📚';
+    case LOCATION_TYPES.OFFICE: return '🏢';
+    case LOCATION_TYPES.SHOP: return '🛒';
     case LOCATION_TYPES.PORTICO: return '🏗️';
     case LOCATION_TYPES.LANDMARK: return '📍';
     default: return '🚶';
@@ -688,9 +826,10 @@ function dismissSplash() {
 // ── Initialization ─────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🧭 AdhiNav initialized');
+  console.log('🧭 AdhiNav v2.0 initialized');
   console.log(`📍 ${LOCATIONS.length} locations loaded`);
   console.log(`🔗 ${Object.keys(ADJACENCY).length} graph nodes`);
+  console.log(`🗺️ ${Object.keys(FLOOR_LAYOUTS).length} floor maps loaded`);
 
   // Dismiss splash screen after fade-out animation completes
   const splash = document.getElementById('splash-screen');
