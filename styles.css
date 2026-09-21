@@ -78,28 +78,36 @@
 
 html {
   font-size: 16px;
+  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
-  /* Block pull-to-refresh and elastic bounce on iOS/Android */
+  /* ── Pull-to-refresh prevention ── */
   overscroll-behavior: none;
   overscroll-behavior-y: none;
+  /* Prevent elastic bounce on iOS Safari */
+  position: fixed;
+  width: 100%;
   height: 100%;
-  height: 100dvh;
 }
 
 body {
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
+  /* Fill the fixed html element */
+  width: 100%;
   height: 100%;
-  height: 100dvh;
-  line-height: 1.6;
-  overflow: hidden;               /* No page-level scroll */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  /* Belt-and-suspenders for Safari / Chrome Android */
+  /* Allow internal scroll but block the browser pull-to-refresh */
+  overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: none;
   overscroll-behavior-y: none;
-  touch-action: pan-x pan-y;      /* Allow finger scroll inside containers, not the page */
+  -webkit-overflow-scrolling: touch;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Remove blue flash on tap (Android) */
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
 }
 
 body::before {
@@ -322,12 +330,13 @@ body::after {
   z-index: 1;
   max-width: 480px;
   margin: 0 auto;
-  height: 100%;
-  height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;               /* screens scroll internally, not the app wrapper */
-  padding: 0;                     /* screens handle their own side padding */
+  /* Use safe-area insets for notched phones */
+  padding: 0
+    max(16px, env(safe-area-inset-right))
+    max(24px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
+  /* Ensure the app fills at least the full viewport height */
+  min-height: 100dvh;
 }
 
 /* ── Global Header ───────────────────────────────────────── */
@@ -335,10 +344,12 @@ body::after {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 0;
-  margin-bottom: 2px;
-  flex-shrink: 0;                 /* Never let the header compress */
-  position: relative;
+  padding: 14px 0;
+  /* Account for iOS notch when header is sticky */
+  padding-top: max(14px, env(safe-area-inset-top));
+  margin-bottom: 4px;
+  position: sticky;
+  top: 0;
   z-index: 100;
   background: linear-gradient(180deg, var(--bg-primary) 60%, transparent 100%);
 }
@@ -382,20 +393,10 @@ body::after {
 .screen {
   display: none;
   animation: fadeSlideIn 0.35s ease both;
-  /* Each screen fills the full viewport */
-  flex: 1;
-  height: 100%;
-  height: 100dvh;
-  overflow-y: auto;               /* internal scroll if content is taller */
-  overflow-x: hidden;
-  overscroll-behavior: contain;   /* stop scroll chaining to page */
-  padding: 0 16px 16px;
-  box-sizing: border-box;
 }
 
 .screen.active {
-  display: flex;
-  flex-direction: column;
+  display: block;
 }
 
 @keyframes fadeSlideIn {
@@ -597,6 +598,8 @@ body::after {
 .btn {
   display: inline-flex;
   -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+  touch-action: manipulation; /* remove 300ms tap delay */
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -613,6 +616,7 @@ body::after {
   text-decoration: none;
   outline: none;
   letter-spacing: 0.01em;
+  /* 48 px minimum touch target (WCAG / Material) */
   min-height: 48px;
 }
 
@@ -997,8 +1001,11 @@ body::after {
 
 /* ── Destination List ────────────────────────────────────── */
 .destination-list {
-  max-height: 380px;
+  /* Use viewport-relative max-height so list never overflows on small phones */
+  max-height: min(380px, 45dvh);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain; /* prevent parent scroll chain */
   margin-bottom: 16px;
   scrollbar-width: thin;
   scrollbar-color: var(--border-light) transparent;
@@ -1038,6 +1045,10 @@ body::after {
   padding: 12px 14px;
   border-radius: var(--radius-sm);
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  /* Ensure comfortable touch target height on mobile */
+  min-height: 52px;
   transition: var(--transition-fast);
   border: 1px solid transparent;
 }
@@ -1097,7 +1108,7 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 
 .nav-route {
@@ -1108,11 +1119,11 @@ body::after {
   font-size: 0.78rem;
   color: var(--text-secondary);
   flex-wrap: wrap;
-  padding: 8px 14px;
+  padding: 12px 16px;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .nav-route .route-point {
@@ -1137,7 +1148,7 @@ body::after {
   height: 4px;
   background: rgba(30, 58, 110, 0.2);
   border-radius: var(--radius-full);
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   overflow: hidden;
 }
 
@@ -1165,9 +1176,9 @@ body::after {
 .step-counter {
   text-align: center;
   font-family: 'Sora', sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  margin-bottom: 4px;
+  margin-bottom: 8px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1177,14 +1188,12 @@ body::after {
 .instruction-card {
   background: var(--bg-card);
   backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
-  padding: 18px 20px;
-  margin-bottom: 10px;
+  padding: 32px 24px;
+  margin-bottom: 24px;
   text-align: center;
-  flex: 1;
-  min-height: 0;
+  min-height: 180px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1287,8 +1296,12 @@ body::after {
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 8px 12px;
+  /* Minimum 44px touch target */
+  padding: 10px 14px;
+  min-height: 44px;
   border-radius: var(--radius-sm);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: var(--transition-fast);
   display: flex;
   align-items: center;
@@ -1512,9 +1525,9 @@ body::after {
 /* ── Toast Notification ──────────────────────────────────── */
 .toast {
   position: fixed;
-  bottom: 24px;
+  bottom: max(24px, env(safe-area-inset-bottom, 24px));
   left: 50%;
-  transform: translateX(-50%) translateY(100px);
+  transform: translateX(-50%) translateY(120px);
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
@@ -1529,10 +1542,14 @@ body::after {
   align-items: center;
   gap: 8px;
   max-width: calc(100vw - 32px);
+  /* Prevent toast from triggering pull-to-refresh on drag */
+  touch-action: none;
+  pointer-events: none;
 }
 
 .toast.show {
   transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
 }
 
 /* ── Loading / Skeleton ──────────────────────────────────── */
@@ -1549,18 +1566,22 @@ body::after {
 }
 
 /* ── Responsive ──────────────────────────────────────────── */
+
+/* Extra-small phones (e.g. iPhone SE 1st gen, Galaxy A01) */
 @media (max-width: 320px) {
+  html { font-size: 14px; }
+
   #app {
-    padding: 0 10px 10px;
+    padding: 0 10px max(10px, env(safe-area-inset-bottom)) 10px;
   }
 
   .glass-card {
-    padding: 16px;
+    padding: 14px;
   }
 
   .instruction-card {
-    padding: 20px 14px;
-    min-height: 150px;
+    padding: 18px 12px;
+    min-height: 140px;
   }
 
   .brand h1 {
@@ -1572,26 +1593,33 @@ body::after {
   }
 
   .nav-actions .btn {
-    padding: 12px 10px;
-    font-size: 0.8rem;
+    padding: 12px 8px;
+    font-size: 0.78rem;
   }
 
   .global-header .header-title {
-    font-size: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .destination-list {
+    max-height: min(280px, 40dvh);
   }
 }
 
+/* Small phones (e.g. iPhone 12 mini, Galaxy S10e) */
 @media (max-width: 380px) {
+  html { font-size: 15px; }
+
   #app {
-    padding: 0 12px 12px;
+    padding: 0 12px max(12px, env(safe-area-inset-bottom)) 12px;
   }
 
   .glass-card {
-    padding: 18px;
+    padding: 16px;
   }
 
   .instruction-card {
-    padding: 24px 18px;
+    padding: 22px 16px;
   }
 
   .brand h1 {
@@ -1627,18 +1655,24 @@ body::after {
   }
 }
 
-/* Safe area insets for notched phones */
+/* Safe area insets for notched/Dynamic-Island phones
+   (covered by env() in the rules above; keeping for clarity) */
 @supports (padding: env(safe-area-inset-top)) {
   .global-header {
-    padding-top: calc(14px + env(safe-area-inset-top));
+    padding-top: max(14px, env(safe-area-inset-top));
   }
 
   .toast {
-    bottom: calc(24px + env(safe-area-inset-bottom));
+    bottom: max(24px, env(safe-area-inset-bottom));
   }
 
   .nav-actions-sos {
-    margin-bottom: calc(16px + env(safe-area-inset-bottom));
+    margin-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
+  /* Prevent content sliding under home-indicator on iPhone */
+  #app {
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
   }
 }
 
