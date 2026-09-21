@@ -11,15 +11,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AdhiNav">
+  <link rel="icon" type="svg+xml" href="download.svg">
   <title>AdhiNav — Campus Navigator</title>
-  <!-- Kill pull-to-refresh BEFORE the external stylesheet loads -->
-  <style>
-    html, body {
-      overscroll-behavior: none;
-      overscroll-behavior-y: none;
-      -webkit-overflow-scrolling: auto;
-    }
-  </style>
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,7 +26,7 @@
   <div class="splash-content">
     <div class="splash-logo">
       <img src="logo.png" alt="ACET" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-      <span class="splash-logo-fallback" style="display:none;">🧭</span>
+      <span class="splash-logo-fallback" style="display:none;"></span>
     </div>
     <div class="splash-title">AdhiNav</div>
     <div class="splash-tagline">Smart Campus Navigator</div>
@@ -41,6 +34,8 @@
   <div class="splash-glow"></div>
 </div>
 
+<!-- Dynamic route-field canvas background -->
+<canvas id="route-field" aria-hidden="true"></canvas>
 <!-- Dynamic animated background orbs -->
 <div class="bg-orbs" aria-hidden="true">
   <div class="orb orb-1"></div>
@@ -72,7 +67,7 @@
     <div class="brand">
       <div class="brand-logo">
         <img src="logo.png" alt="ACET" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-        <span class="brand-logo-fallback" style="display:none;">🧭</span>
+        <span class="brand-logo-fallback" style="display:none;"></span>
       </div>
       <h1>AdhiNav</h1>
       <p>Smart Campus Navigator — ACET</p>
@@ -80,10 +75,10 @@
 
     <!-- Scan CTA -->
     <div class="glass-card text-center">
-      <h2><span class="icon">📱</span> Get Started</h2>
+      <h2><span class="icon"></span> Get Started</h2>
       <p class="text-muted mb-16" style="font-size: 0.82rem;">Scan a QR code placed around campus to start navigating</p>
       <button id="btn-start-scan" class="btn btn-primary btn-full" onclick="showScreen('screen-scanner')">
-        📷 Scan QR Code
+         Scan QR Code
       </button>
       <div class="manual-entry">
         <button class="link-btn" onclick="showScreen('screen-manual-location')">
@@ -94,7 +89,7 @@
 
     <!-- Room Naming Guide -->
     <div class="glass-card">
-      <h2><span class="icon">📖</span> Room Naming Guide</h2>
+      <h2><span class="icon"></span> Room Naming Guide</h2>
       <div class="code-explain">
         <div class="code-item">
           <span class="code-badge mb">MB</span>
@@ -133,7 +128,7 @@
     </div>
 
     <div class="glass-card">
-      <h2><span class="icon">📷</span> Scan QR Code</h2>
+      <h2><span class="icon"></span> Scan QR Code</h2>
       <p class="text-muted mb-16" style="font-size: 0.82rem;">Point your rear camera at any AdhiNav QR code</p>
       <div class="scanner-container" id="scanner-container">
         <div id="qr-reader"></div>
@@ -152,11 +147,11 @@
       <!-- Camera permission denied panel -->
       <div id="camera-denied-panel" class="hidden">
         <div class="camera-denied">
-          <div class="camera-denied-icon">🔒</div>
+          <div class="camera-denied-icon"></div>
           <h3>Camera Access Required</h3>
           <p>AdhiNav needs camera access to scan QR codes. Please allow camera permission when prompted.</p>
           <button class="btn btn-primary btn-full mb-12" onclick="retryCameraPermission()">
-            📷 Allow Camera & Retry
+             Allow Camera & Retry
           </button>
           <div class="camera-denied-help">
             <p><strong>Still not working?</strong></p>
@@ -190,11 +185,11 @@
     </div>
 
     <div class="glass-card">
-      <h2><span class="icon">📍</span> Where are you now?</h2>
+      <h2><span class="icon"></span> Where are you now?</h2>
       <p class="text-muted mb-12" style="font-size: 0.82rem;">Select your current location</p>
 
       <div class="search-wrapper">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon"></span>
         <input type="text" class="search-input" id="manual-search" placeholder="Search location..." oninput="filterManualLocations(this.value)">
       </div>
 
@@ -220,7 +215,7 @@
     <!-- Current location display -->
     <div class="glass-card" style="padding: 14px 20px;">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="font-size: 1.1rem;">📍</span>
+        <span style="font-size: 1.1rem;"></span>
         <div>
           <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;">Your Location</div>
           <div id="current-location-display" style="font-weight: 600; font-size: 0.92rem;">—</div>
@@ -229,10 +224,10 @@
     </div>
 
     <div class="glass-card">
-      <h2><span class="icon">🎯</span> Where do you want to go?</h2>
+      <h2><span class="icon"></span> Where do you want to go?</h2>
 
       <div class="search-wrapper">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon"></span>
         <input type="text" class="search-input" id="dest-search" placeholder="Search rooms, labs, staffrooms, canteen..." oninput="filterDestinations(this.value)">
       </div>
 
@@ -274,7 +269,7 @@
     <!-- Interactive Map Panel (collapsible) -->
     <div class="map-panel">
       <button class="map-panel-toggle" id="map-toggle" onclick="toggleMapPanel()">
-        <span>🗺️ View Floor Map</span>
+        <span>️ View Floor Map</span>
         <span class="toggle-icon">▼</span>
       </button>
       <div class="map-panel-content" id="map-panel-content">
@@ -292,7 +287,7 @@
 
     <!-- Instruction card -->
     <div class="instruction-card" id="instruction-card">
-      <div class="instruction-icon" id="instruction-icon">🚶</div>
+      <div class="instruction-icon" id="instruction-icon"></div>
       <div class="instruction-text" id="instruction-text">
         Loading navigation...
       </div>
@@ -312,7 +307,7 @@
     <!-- SOS Button — Always visible -->
     <div class="nav-actions-sos">
       <button id="btn-lost" class="btn btn-warning btn-full" onclick="navLost()">
-        🆘 SOS — I'm Lost
+         SOS — I'm Lost
       </button>
     </div>
 
@@ -325,7 +320,7 @@
   <section id="screen-arrived" class="screen">
 
     <div class="success-animation">
-      <div class="success-icon">🎉</div>
+      <div class="success-icon"></div>
       <h2>You've Arrived!</h2>
       <p id="arrived-destination">You have reached your destination.</p>
     </div>
@@ -336,11 +331,11 @@
           ◀ Prev
         </button>
         <button class="btn btn-warning" onclick="navLost()">
-          🆘 SOS
+           SOS
         </button>
       </div>
       <button class="btn btn-primary btn-full mt-12" onclick="showScreen('screen-landing')">
-        🏠 Back to Home
+         Back to Home
       </button>
     </div>
 
@@ -353,17 +348,17 @@
   <section id="screen-success" class="screen">
 
     <div class="success-animation">
-      <div class="success-icon">🎉</div>
+      <div class="success-icon"></div>
       <h2>Navigation Complete!</h2>
       <p id="success-destination">—</p>
     </div>
 
     <div class="glass-card text-center">
       <button class="btn btn-primary btn-full mb-12" onclick="navigateAgain()">
-        🧭 Navigate Somewhere Else
+         Navigate Somewhere Else
       </button>
       <button class="btn btn-secondary btn-full" onclick="showScreen('screen-landing')">
-        🏠 Back to Home
+         Back to Home
       </button>
     </div>
 
@@ -383,7 +378,7 @@
 
     <div class="glass-card">
       <div class="lost-panel">
-        <div class="icon">😟</div>
+        <div class="icon"></div>
         <h3>Don't worry, we'll help!</h3>
         <p>Look around for the nearest QR code and scan it. Here are some nearby scan points:</p>
 
@@ -392,7 +387,7 @@
         </div>
 
         <button class="btn btn-primary btn-full mb-12" onclick="rescanQR()">
-          📷 Scan QR Code Again
+           Scan QR Code Again
         </button>
         <button class="btn btn-secondary btn-full" onclick="returnToNavigation()">
           ← Continue Current Navigation
@@ -409,7 +404,7 @@
 
 <!-- Toast notification -->
 <div class="toast" id="toast">
-  <span id="toast-icon">✅</span>
+  <span id="toast-icon"></span>
   <span id="toast-text">Saved!</span>
 </div>
 
@@ -421,6 +416,55 @@
 <script src="pathfinder.js"></script>
 <script src="mapRenderer.js"></script>
 <script src="app.js"></script>
+
+
+<script>
+/* Decorative route-field animation only; does not touch app state or navigation. */
+(() => {
+  const canvas = document.getElementById('route-field');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  let w=0,h=0,dpr=1, nodes=[], raf=0, tick=0;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function resize(){
+    dpr=Math.min(window.devicePixelRatio||1,1.6); w=innerWidth; h=innerHeight;
+    canvas.width=w*dpr; canvas.height=h*dpr; canvas.style.width=w+'px'; canvas.style.height=h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const count=Math.max(28,Math.min(76,Math.floor(w*h/17000)));
+    nodes=Array.from({length:count},(_,i)=>({x:Math.random()*w,y:Math.random()*h,
+      vx:(Math.random()-.5)*.22,vy:(Math.random()-.5)*.22,r:Math.random()*1.5+.5,
+      phase:Math.random()*6.28,seed:i}));
+  }
+  function draw(){
+    ctx.clearRect(0,0,w,h); tick+=reduce?0:.003;
+    // faint, slow-shifting topographic curves
+    ctx.save(); ctx.globalAlpha=.18; ctx.strokeStyle='#286be8'; ctx.lineWidth=.65;
+    for(let k=0;k<5;k++){
+      ctx.beginPath();
+      for(let x=-20;x<=w+20;x+=12){
+        const y=h*(.2+k*.16)+Math.sin(x*.006+tick*2+k)*24+Math.sin(x*.002-tick+k)*35;
+        x===-20?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      } ctx.stroke();
+    } ctx.restore();
+    nodes.forEach((p,i)=>{
+      if(!reduce){p.x+=p.vx+Math.sin(tick+p.phase)*.08;p.y+=p.vy+Math.cos(tick*.8+p.phase)*.08;}
+      if(p.x<0)p.x=w;if(p.x>w)p.x=0;if(p.y<0)p.y=h;if(p.y>h)p.y=0;
+      for(let j=i+1;j<nodes.length;j++){
+        const q=nodes[j],dx=p.x-q.x,dy=p.y-q.y,dist=Math.hypot(dx,dy);
+        if(dist<125){ctx.strokeStyle=`rgba(54,125,244,${(1-dist/125)*.19})`;ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();}
+      }
+      ctx.fillStyle=i%7===0?'rgba(238,202,112,.7)':'rgba(86,151,255,.65)';
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+    });
+    if(!reduce) raf=requestAnimationFrame(draw);
+  }
+  const style=document.createElement('style');
+  style.textContent='#route-field{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.72}';
+  document.head.appendChild(style);
+  addEventListener('resize',resize,{passive:true}); resize(); draw();
+})();
+</script>
 
 </body>
 </html>
